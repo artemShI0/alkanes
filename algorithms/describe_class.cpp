@@ -10,6 +10,9 @@
 using namespace std;
 
 
+const double pi = 3.1415926535;
+
+
 void print(vector<int> v){
     cout << "size = " << v.size() << endl;
     for(int i = 0; i < v.size(); ++i){
@@ -64,6 +67,7 @@ public:
     vector<string> root_AHU;
     vector<int> sz;              
     int L = 10;
+
 
 
     Molecule(){
@@ -234,15 +238,27 @@ public:
     }
 
 
+
+    bool include(vector<int>& diameter, int v){                   // говорит, есть ли элемент в массиве
+        for(int i = 0; i < diameter.size(); ++i){
+            if(v == diameter[i]){
+                return true;
+            }
+        }
+        return false;
+    }
+
     void coordinate_dfs(int v, int p, int st, vector<int>& diameter){            // тут доделай
         if(p == -1){
             graph[v].x = 0;
             graph[v].y = 0;
-        } else {
-
         }
         for(int i = 0; i < graph[v].size(); ++i){
             if(graph[v][i] != p){
+                if(include(diameter, graph[v][i])){
+                    graph[graph[v][i]].x = graph[v].x + L * cos(pi / 6);
+                    graph[graph[v][i]].y = graph[v].y + L * sin(pi / 6) * (st == 0 ? 1 : -1);
+                }
                 coordinate_dfs(graph[v][i], v, !st, diameter);
             }
         }
@@ -259,6 +275,7 @@ public:
         diameter_dfs(edge1.second, 0, -1, edge2);
         diameter = coordinates_bfs(edge1.second, edge2.second);
         coordinate_dfs(diameter[0], -1, 0, diameter);
+        print(diameter);
     }
 
 
@@ -273,12 +290,12 @@ public:
 
 
 
+
     void draw(int dx = 0, int dy = 0){                                                  // рисует все связи
-        for(int i = 0; i < this->size(); ++i){                                   //доделай            
-                                                                                    
+        for(int i = 0; i < this->size(); ++i){                                   //доделай       
+            cout << i << ": (" << graph[i].x << ":" << graph[i].y << ")" << endl;                                                               
         }
     }
-
 
     void print(){
         for(int i = 0; i < size(); ++i){
@@ -306,7 +323,8 @@ public:
 
 
 
-int main(){
+int main()
+{   
     Molecule C1;
     Molecule C2(C1, 0);
     Molecule C3(C2, 0);
@@ -318,6 +336,7 @@ int main(){
     C42.print();
 
 
+    C42.draw();
 
-
+    return 0;
 }

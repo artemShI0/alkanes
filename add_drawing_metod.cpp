@@ -3,74 +3,86 @@
 #include <string>
 #include <algorithm>
 #include <stdexcept>
+#include <queue>
+#include <cmath>
 #include "raylib.h"
 
 using namespace std;
 
+const double pi = 3.1415926535;
 
-void print(vector<int> v){
+void print(vector<int> v)
+{
     cout << "size = " << v.size() << endl;
-    for(int i = 0; i < v.size(); ++i){
+    for (int i = 0; i < v.size(); ++i)
+    {
         cout << v[i] << ' ';
     }
     cout << endl;
 }
 
-
-void mistake(){
+void mistake()
+{
     throw length_error("carbon forms only 4 bonds");
 }
 
-
-class Atom{
+class Atom
+{
 public:
+    bool diametre;
     int number = 0;
     int x = 0, y = 0;
     vector<int> connection;
 
-
-    Atom(int _number = 0){
+    Atom(int _number = 0)
+    {
         number = _number;
     }
 
-
-    void connect(Atom& other){
+    void connect(Atom &other)
+    { // добавляет атому новую связь
         this->connection.push_back(other.number);
         other.connection.push_back(this->number);
-        if (this->size() > 4 || other.size() > 4){
+        if (this->size() > 4 || other.size() > 4)
+        {
             mistake();
         }
     }
 
-    int size(){
+    int size()
+    {
         return connection.size();
     }
-    
 
-    int& operator[](int i){
+    int &operator[](int i)
+    {
         return connection[i];
     }
-
 };
 
-
-class Molecule{
+class Molecule
+{
 public:
     vector<Atom> graph;
     vector<int> root;
     vector<string> root_AHU;
-    vector<int> sz;               // sz.size() = graph.size();
-    
-    Molecule(){
+    vector<int> sz;
+    int L = 10;
+
+    Molecule()
+    {
         Atom C;
         graph.push_back(C);
         sz.resize(this->size());
         getCentroids();
-        if(root.size() == 1){
+        if (root.size() == 1)
+        {
             vector<string> AHU(this->size());
             build_AHU(AHU, root[0], -1);
             root_AHU.push_back(AHU[root[0]]);
-        } else if(root.size() == 2){
+        }
+        else if (root.size() == 2)
+        {
             vector<string> AHU1(this->size());
             vector<string> AHU2(this->size());
             build_AHU(AHU1, root[0], -1);
@@ -81,19 +93,22 @@ public:
         give_coordinates();
     }
 
-    
-    Molecule(Molecule& other, int number){
+    Molecule(Molecule &other, int number)
+    {
         Atom C(other.size());
         this->graph = other.graph;
         this->graph.push_back(C);
         this->graph[number].connect(this->graph[this->size() - 1]);
         this->sz.resize(this->size());
         this->getCentroids();
-        if(root.size() == 1){
+        if (root.size() == 1)
+        {
             vector<string> AHU(this->size());
             build_AHU(AHU, root[0], -1);
             root_AHU.push_back(AHU[root[0]]);
-        } else if(root.size() == 2){
+        }
+        else if (root.size() == 2)
+        {
             vector<string> AHU1(this->size());
             vector<string> AHU2(this->size());
             build_AHU(AHU1, root[0], -1);
@@ -104,10 +119,13 @@ public:
         give_coordinates();
     }
 
-    void centroid_dfs(int v){
+    void centroid_dfs(int v)
+    {
         sz[v] = 1;
-        for (int i = 0; i < graph[v].size(); ++i){
-            if (sz[graph[v][i]] != 0){
+        for (int i = 0; i < graph[v].size(); ++i)
+        {
+            if (sz[graph[v][i]] != 0)
+            {
                 continue;
             }
             centroid_dfs(graph[v][i]);
@@ -115,22 +133,27 @@ public:
         }
     }
 
-
-    int getCentroid(){
+    int getCentroid()
+    { // ищет первый центроид
         int v = 0;
         centroid_dfs(v);
-        while(true){
+        while (true)
+        {
             int w = -1;
-            for(int i = 0; i < graph[v].size(); ++i){
-                if(sz[graph[v][i]] > sz[v]){
+            for (int i = 0; i < graph[v].size(); ++i)
+            {
+                if (sz[graph[v][i]] > sz[v])
+                {
                     continue;
                 }
-                if (2 * sz[graph[v][i]] > graph.size()){
+                if (2 * sz[graph[v][i]] > graph.size())
+                {
                     w = graph[v][i];
                     break;
                 }
             }
-            if (w == -1){
+            if (w == -1)
+            {
                 break;
             }
             v = w;
@@ -138,22 +161,26 @@ public:
         return v;
     }
 
-
-    void getCentroids(){
+    void getCentroids()
+    { // определяет оба центроида
         int v = getCentroid();
         root.push_back(v);
-        for (int i = 0; i < graph[v].size(); ++i){
-            if (2 * sz[graph[v][i]] == graph.size()){         
+        for (int i = 0; i < graph[v].size(); ++i)
+        {
+            if (2 * sz[graph[v][i]] == graph.size())
+            {
                 root.push_back(graph[v][i]);
             }
         }
     }
 
-
-    void build_AHU(vector<string>& AHU, int v, int p){
+    void build_AHU(vector<string> &AHU, int v, int p)
+    { // определяет AHU для всего графа
         vector<string> children;
-        for (int i = 0; i < graph[v].size(); ++i){
-            if (graph[v][i] == p){
+        for (int i = 0; i < graph[v].size(); ++i)
+        {
+            if (graph[v][i] == p)
+            {
                 continue;
             }
             build_AHU(AHU, graph[v][i], v);
@@ -161,121 +188,202 @@ public:
         }
         sort(children.begin(), children.end());
         string sm = "";
-        for (int i = 0; i < children.size(); ++i){
+        for (int i = 0; i < children.size(); ++i)
+        {
             sm += children[i];
         }
         AHU[v] = "(0" + sm + ")";
     }
 
-
-    bool operator==(Molecule other){
-        if(this->size() != other.size()){
+    bool operator==(Molecule other)
+    {
+        if (this->size() != other.size())
+        {
             return false;
         }
-        if(this->root_AHU.size() == 1 && other.root_AHU.size() == 1){
+        if (this->root_AHU.size() == 1 && other.root_AHU.size() == 1)
+        {
             return this->root_AHU[0] == other.root_AHU[0];
-        } else if(this->root_AHU.size() == 2 && other.root_AHU.size() == 2){
+        }
+        else if (this->root_AHU.size() == 2 && other.root_AHU.size() == 2)
+        {
             return this->root_AHU[0] == other.root_AHU[0] || this->root_AHU[1] == other.root_AHU[1] || this->root_AHU[0] == other.root_AHU[1] || this->root_AHU[1] == other.root_AHU[0];
-        } else {
+        }
+        else
+        {
             return false;
         }
-    }   
+    }
 
-
-
-
-
-    void coordinates_dfs(int v, int d, int p, pair<int, int>& mx){
-        if(mx.first < d){
+    void diameter_dfs(int v, int d, int p, pair<int, int> &mx)
+    {
+        if (mx.first < d)
+        {
             mx.first = d;
             mx.second = v;
         }
-        for(int i = 0; i < graph[v].size(); ++i){
-            if(graph[v][i] != p){
-                coordinates_dfs(graph[v][i], d + 1, v, mx);
+        for (int i = 0; i < graph[v].size(); ++i)
+        {
+            if (graph[v][i] != p)
+            {
+                diameter_dfs(graph[v][i], d + 1, v, mx);
             }
         }
     }
 
-    void give_coordinates(){
-        vector<int> diametre;
-        pair<int, int> edge1 = {0, 0};
-        pair<int, int> edge2 = {0, 0};
-        coordinates_dfs(this->root[0], 0, -1, edge1);
-        coordinates_dfs(edge1.second, 0, -1, edge2);
-        cout << edge1.first << ' ' << edge1.second << endl;
-        cout << edge2.first << ' ' << edge2.second << endl;
+    vector<int> coordinates_bfs(int s, int f)
+    { // возвращает массив с номерами вершин диаметра
+        vector<int> parent(this->size());
+        vector<int> dist(this->size(), 1000000000);
+        vector<int> rez;
+        queue<int> q;
+        parent[s] = -1;
+        dist[s] = 0;
+        q.push(s);
+        while (q.size())
+        {
+            int v = q.front();
+            q.pop();
+            for (int i = 0; i < graph[v].size(); ++i)
+            {
+                if (dist[graph[v][i]] > dist[v] + 1)
+                {
+                    dist[graph[v][i]] = dist[v] + 1;
+                    q.push(graph[v][i]);
+                    parent[graph[v][i]] = v;
+                }
+            }
+        }
+
+        int cur = f;
+        while (cur != -1)
+        {
+            rez.push_back(cur);
+            cur = parent[cur];
+        }
+        return rez;
     }
 
-
-
-
-    int size(){
-        return graph.size();
+    bool include(vector<int> &diameter, int v)
+    { // говорит, есть ли элемент в массиве
+        for (int i = 0; i < diameter.size(); ++i)
+        {
+            if (v == diameter[i])
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
-
-    Atom& operator[](int i){
-        return graph[i];
-    }
-
-
-
-    void draw(int dx = 0; int dy = 0){
-        for(int i = 0; i < n; ++i){
-            
+    void coordinate_dfs(int v, int p, int st, vector<int> &diameter)
+    { // тут доделай
+        if (p == -1)
+        {
+            graph[v].x = 0;
+            graph[v].y = 0;
+        }
+        for (int i = 0; i < graph[v].size(); ++i)
+        {
+            if (graph[v][i] != p)
+            {
+                if (include(diameter, graph[v][i]))
+                {
+                    graph[graph[v][i]].x = graph[v].x + L * cos(pi / 6);
+                    graph[graph[v][i]].y = graph[v].y + L * sin(pi / 6) * (st == 0 ? 1 : -1);
+                }
+                coordinate_dfs(graph[v][i], v, !st, diameter);
+            }
         }
     }
 
+    void give_coordinates()
+    { // задает координаты атомам сразу с созданием молекулы
+        vector<int> diameter;
+        pair<int, int> edge1 = {0, 0};
+        pair<int, int> edge2 = {0, 0}; // доделай
+        diameter_dfs(this->root[0], 0, -1, edge1);
+        diameter_dfs(edge1.second, 0, -1, edge2);
+        diameter = coordinates_bfs(edge1.second, edge2.second);
+        coordinate_dfs(diameter[0], -1, 0, diameter);
+    }
 
-    void print(){
-        for(int i = 0; i < size(); ++i){
+    int size()
+    {
+        return graph.size();
+    }
+
+    Atom &operator[](int i)
+    {
+        return graph[i];
+    }
+
+    void draw(int dx = 0, int dy = 0)
+    { // рисует все связи
+        for (int i = 0; i < this->size(); ++i)
+        { // доделай
+            for (int j = 0; j < graph[i].size(); ++j)
+            {
+                Vector2 start = {graph[i].x + dx, graph[i].y + dy};
+                Vector2 end = {graph[graph[i][j]].x + dx, graph[graph[i][j]].y + dy};
+                DrawLineEx(start, end, 5, BLACK);
+            }
+        }
+    }
+
+    void print()
+    {
+        for (int i = 0; i < size(); ++i)
+        {
             cout << graph[i].number << ": ";
-            for(int j  = 0; j < graph[i].size(); ++j){
+            for (int j = 0; j < graph[i].size(); ++j)
+            {
                 cout << graph[i][j] << ' ';
             }
             cout << endl;
         }
         cout << endl;
     }
+
+    void print(vector<int> v)
+    {
+        cout << "size = " << v.size() << endl;
+        for (int i = 0; i < v.size(); ++i)
+        {
+            cout << v[i] << ' ';
+        }
+        cout << endl;
+    }
 };
 
-
-
-
-
-
-
-int main(){
+int main()
+{
     Molecule C1;
     Molecule C2(C1, 0);
     Molecule C3(C2, 0);
-    cout << "djkaflsjkdfkas" << endl << endl << endl;
     Molecule C40(C3, 0);
     Molecule C41(C3, 1);
     Molecule C42(C3, 2);
     C40.print();
     C41.print();
     C42.print();
+    InitWindow(800, 600, "Hello,123 World!");
 
-    cout << (C40 == C41) << endl;
-    cout << (C41 == C42) << endl;
-    cout << (C42 == C40) << endl;
-
-
-    InitWindow(800, 600, "Hello, World!");
-    
     while (!WindowShouldClose())
     {
+
         BeginDrawing();
-        
+
         ClearBackground(RAYWHITE);
-        C4.draw();
-        
+        Vector2 start = {10, 10};
+        Vector2 end = {100, 100};
+        DrawLineEx(start, end, 10, LIGHTGRAY);
+
+        C40.draw(100, 100);
         EndDrawing();
     }
 
     CloseWindow();
 
-
+    return 0;
 }
