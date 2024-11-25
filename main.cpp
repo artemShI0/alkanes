@@ -387,6 +387,9 @@ int main(){
     for(int i = 1; i < molecules.size(); ++i){
         for(int j = 0; j < molecules[i - 1].size(); ++i){
             for(int k = 0; k < molecules[i - 1][j].size(); ++i){
+                if(molecules[i - 1][j][k].size() > 3){
+                    continue;
+                }
                 Molecule C(molecules[i - 1][j], k);
                 bool already = false;
                 for(int l = 0; l < molecules[i].size(); ++i){
@@ -413,6 +416,7 @@ int main(){
     file << picture.s;
     file.close();
 
+    cout << molecules[16].size() << endl << "fkjlslkfh";
 
     return 0;
 }
