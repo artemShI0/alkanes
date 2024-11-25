@@ -5,8 +5,7 @@
 #include <stdexcept>
 #include <queue>
 #include <cmath>
-
-
+#include <fstream>
 using namespace std;
 
 
@@ -315,12 +314,35 @@ public:
         }
         cout << endl;
     }
+
+
+
+    void print(ofstream& file_out){
+        for(int i = 0; i < size(); ++i){
+            file_out << graph[i].number << ": ";
+            for(int j  = 0; j < graph[i].size(); ++j){
+                file_out << graph[i][j] << ' ';
+            }
+            file_out << '\n';
+        }
+        file_out << '\n';
+    }
+
 };
 
 
+class SVG_picture{
+public:
+    string main = '';
+    void read_molecule(molecule mol){
+
+    }
+};
 
 
+class HTML_picture{
 
+};
 
 
 int main()
@@ -333,10 +355,15 @@ int main()
     Molecule C42(C3, 2);
     C40.print();
     C41.print();
-    C42.print();
-
 
     C42.draw();
+
+    ofstream out;        
+    out.open("hello.txt"); 
+    out << "fjsdf";
+    C42.print(out);
+    out.close(); 
+
 
     return 0;
 }

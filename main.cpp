@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <queue>
 #include <cmath>
-
-
+#include <fstream>
+#include <windows.h>
 using namespace std;
 
 
@@ -66,7 +66,7 @@ public:
     vector<int> root;
     vector<string> root_AHU;
     vector<int> sz;              
-    int L = 10;
+    int L = 100;
 
 
 
@@ -315,16 +315,72 @@ public:
         }
         cout << endl;
     }
+
+
+
+    void print(ofstream& file_out){
+        for(int i = 0; i < size(); ++i){
+            file_out << graph[i].number << ": ";
+            for(int j  = 0; j < graph[i].size(); ++j){
+                file_out << graph[i][j] << ' ';
+            }
+            file_out << '\n';
+        }
+        file_out << '\n';
+    }
+
+};
+
+
+class SVG_picture{
+public:
+    string s = "";
+
+
+    void draw_dfs(int v, int p, vector<int>& used, Molecule& mol){
+        used[v] = 1; 
+        if(p != -1){
+            s += "<line x1=\"";
+            s += to_string(mol[v].x);
+            s += "\" y1=\"";
+            s += to_string(mol[v].y);
+            s += "\" x2=\"";
+            s += to_string(mol[p].x);
+            s += "\" y2=\"";
+            s += to_string(mol[p].y);
+            s += "\" style=\"stroke:rgb(0,0,0); stroke-width:1\" />";
+            s += '\n';
+        }
+        for (int i = 0; i < mol[v].size(); ++i){
+            if(used[mol[v][i]]){
+                continue;
+            }
+            draw_dfs(mol[v][i], v, used, mol);
+        }
+    }
+
+
+    void read_molecule(Molecule& mol){
+        vector<int> used(mol.size());
+        s = "";
+        s += "<svg xmlns=\"http://www.w3.org/2000/svg\">";
+        s += '\n';
+        draw_dfs(0, -1, used, mol);
+        s += "</svg>";
+        s += '\n';
+    }
 };
 
 
 
+int main(){
+    for(int i = 1; i < 17; ++i){
+        string s = ".\\skelets\\C";
+        s += char(i / 10 + '0');
+        s += char(i % 10 + '0');
+        CreateDirectoryA(s.c_str(), NULL);
+    }
 
-
-
-
-int main()
-{   
     Molecule C1;
     Molecule C2(C1, 0);
     Molecule C3(C2, 0);
@@ -333,10 +389,19 @@ int main()
     Molecule C42(C3, 2);
     C40.print();
     C41.print();
-    C42.print();
-
-
     C42.draw();
+
+
+    SVG_picture picture;
+    picture.read_molecule(C42);
+
+    ofstream file;
+    string name = "0";
+    string file_name = ".\\skelets\\C01\\"+ name + ".svg";
+    file.open(file_name.c_str()); // <- here
+    file << picture.s;
+    file.close();
+
 
     return 0;
 }
