@@ -381,19 +381,30 @@ int main(){
         CreateDirectoryA(s.c_str(), NULL);
     }
 
+    vector<vector<Molecule>> molecules(17);
     Molecule C1;
-    Molecule C2(C1, 0);
-    Molecule C3(C2, 0);
-    Molecule C40(C3, 0);
-    Molecule C41(C3, 1);
-    Molecule C42(C3, 2);
-    C40.print();
-    C41.print();
-    C42.draw();
+    molecules[0].push_back(C1);
+    for(int i = 1; i < molecules.size(); ++i){
+        for(int j = 0; j < molecules[i - 1].size(); ++i){
+            for(int k = 0; k < molecules[i - 1][j].size(); ++i){
+                Molecule C(molecules[i - 1][j], k);
+                bool already = false;
+                for(int l = 0; l < molecules[i].size(); ++i){
+                    if(molecules[i][l] == C){
+                        already = true;
+                    }
+                }
+                if(!already){
+                    molecules[i].push_back(C);
+                }
+            }
+        }
+    }
+
 
 
     SVG_picture picture;
-    picture.read_molecule(C42);
+    picture.read_molecule(molecules[2][0]);
 
     ofstream file;
     string name = "0";
