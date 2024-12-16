@@ -7,6 +7,7 @@
 #include <cmath>
 #include <fstream>
 #include <windows.h>
+#include <time.h>
 using namespace std;
 
 
@@ -67,6 +68,7 @@ public:
     vector<string> root_AHU;
     vector<int> sz;              
     int L = 100;
+    double alpha = pi / 6;
 
 
 
@@ -192,8 +194,6 @@ public:
 
 
 
-
-
     void diameter_dfs(int v, int d, int p, pair<int, int>& mx){                                                     
         if(mx.first < d){
             mx.first = d;
@@ -248,17 +248,69 @@ public:
         return false;
     }
 
+    int next_diameter(vector<int>& diameter, int v){                   // индекс следующего атома, принадлежащего диаметру
+        for(int i = 0; i < diameter.size(); ++i){
+            if(v == diameter[i]){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    double get_engle(Atom& f, Atom& t){
+        double dx = t.x - f.x;
+        double dy = t.y - f.y;
+        if(dx == 0 && t.y >= f.y){
+            return pi / 2;
+        }
+        if(dx == 0 && t.y < f.y){
+            return - pi / 2;
+        }
+        if(dy == 0 && t.x >= f.y){
+            return 0;
+        }
+        if(dy == 0 && t.x < f.y){
+            return - pi;
+        }
+        double engle = atan(dy / dx);
+        if(dx < 0){
+            engle += pi;
+        }
+        return engle;
+    }
+
+
+
     void coordinate_dfs(int v, int p, int st, vector<int>& diameter){            // тут доделай
         if(p == -1){
             graph[v].x = 0;
             graph[v].y = 0;
         }
+        int used = 0;
         for(int i = 0; i < graph[v].size(); ++i){
             if(graph[v][i] != p){
-                if(include(diameter, graph[v][i])){
-                    graph[graph[v][i]].x = graph[v].x + L * cos(pi / 6);
-                    graph[graph[v][i]].y = graph[v].y + L * sin(pi / 6) * (st == 0 ? 1 : -1);
+                double fi = get_engle(graph[v], graph[graph[v][i]]);
+                if(used == 0){
+                    graph[graph[v][i]].x = graph[v].x + L * cos(fi + 2 * alpha * (st == 0 ? -1 : 1));
+                    graph[graph[v][i]].y = graph[v].y + L * sin(fi + 2 * alpha * (st == 0 ? -1 : 1));
+                } else if(used == 1){
+                    if(st == 0){
+                        graph[graph[v][i]].x = graph[v].x + L * cos(pi / 2 + fi - 2 * alpha);
+                        graph[graph[v][i]].y = graph[v].y + L * sin(pi / 2 + fi - 2 * alpha);
+                    } else {
+                        graph[graph[v][i]].x = graph[v].x + L * cos(fi - pi / 2);
+                        graph[graph[v][i]].y = graph[v].y + L * sin(fi - pi / 2);
+                    }
+                } else if(used == 2){
+                    if(st == 0){
+                        graph[graph[v][i]].x = graph[v].x + L * cos(fi - pi / 2);
+                        graph[graph[v][i]].y = graph[v].y + L * sin(fi - pi / 2);
+                    } else {
+                        graph[graph[v][i]].x = graph[v].x + L * cos(fi + pi / 2);
+                        graph[graph[v][i]].y = graph[v].y + L * sin(fi + pi / 2);
+                    }
                 }
+                used++;
                 coordinate_dfs(graph[v][i], v, !st, diameter);
             }
         }
@@ -273,9 +325,21 @@ public:
         pair<int, int> edge2 = {0, 0};                                                  // доделай
         diameter_dfs(this->root[0], 0, -1, edge1);
         diameter_dfs(edge1.second, 0, -1, edge2);
-        diameter = coordinates_bfs(edge1.second, edge2.second);
+        diameter = coordinates_bfs(edge1.second, edge2.second);                               // в diameter хранятся индексы вершин, принадлежащих одному из диаметров
         coordinate_dfs(diameter[0], -1, 0, diameter);
-        print(diameter);
+        int x0 = 0, y0 = 0;
+        for(int i = 0; i < this->size(); i++){
+            if(graph[i].x < x0){
+                x0 = graph[i].x;
+            }
+            if(graph[i].y < y0){
+                y0 = graph[i].y;
+            }
+        }
+        for(int i = 0; i < this->size(); i++){
+            graph[i].x -= x0;
+            graph[i].y -= y0;
+        }
     }
 
 
@@ -338,23 +402,20 @@ public:
 
 
     void draw_dfs(int v, int p, vector<int>& used, Molecule& mol){
-        used[v] = 1; 
-        if(p != -1){
+        for (int i = 0; i < mol[v].size(); ++i){
+            if(mol[v][i] == p){
+                continue;
+            }
             s += "<line x1=\"";
             s += to_string(mol[v].x);
             s += "\" y1=\"";
             s += to_string(mol[v].y);
             s += "\" x2=\"";
-            s += to_string(mol[p].x);
+            s += to_string(mol[mol[v][i]].x);
             s += "\" y2=\"";
-            s += to_string(mol[p].y);
+            s += to_string(mol[mol[v][i]].y);
             s += "\" style=\"stroke:rgb(0,0,0); stroke-width:1\" />";
             s += '\n';
-        }
-        for (int i = 0; i < mol[v].size(); ++i){
-            if(used[mol[v][i]]){
-                continue;
-            }
             draw_dfs(mol[v][i], v, used, mol);
         }
     }
@@ -374,6 +435,12 @@ public:
 
 
 int main(){
+    clock_t tStart = clock();
+    cout << "start time = " << tStart << endl;
+
+
+
+
     for(int i = 1; i < 17; ++i){
         string s = ".\\skelets\\C";
         s += char(i / 10 + '0');
@@ -381,18 +448,20 @@ int main(){
         CreateDirectoryA(s.c_str(), NULL);
     }
 
-    vector<vector<Molecule>> molecules(17);
+
+
+    vector<vector<Molecule>> molecules(16);
     Molecule C1;
     molecules[0].push_back(C1);
     for(int i = 1; i < molecules.size(); ++i){
-        for(int j = 0; j < molecules[i - 1].size(); ++i){
-            for(int k = 0; k < molecules[i - 1][j].size(); ++i){
+        for(int j = 0; j < molecules[i - 1].size(); ++j){
+            for(int k = 0; k < molecules[i - 1][j].size(); ++k){
                 if(molecules[i - 1][j][k].size() > 3){
                     continue;
                 }
                 Molecule C(molecules[i - 1][j], k);
                 bool already = false;
-                for(int l = 0; l < molecules[i].size(); ++i){
+                for(int l = 0; l < molecules[i].size(); ++l){
                     if(molecules[i][l] == C){
                         already = true;
                     }
@@ -402,21 +471,26 @@ int main(){
                 }
             }
         }
+        cout << "C" << i + 1 << ": " << molecules[i].size() << " isomers" << endl;
     }
 
 
 
-    SVG_picture picture;
-    picture.read_molecule(molecules[2][0]);
+    // SVG_picture picture;
+    // picture.read_molecule(molecules[4][0]);
+    // molecules[4][0].print();
+    // molecules[4][0].draw();
+    // ofstream file;
+    // string name = "0";
+    // string file_name = ".\\skelets\\C01\\" + name + ".svg";
+    // file.open(file_name.c_str()); // <- here
+    // file << picture.s;
+    // file.close();
 
-    ofstream file;
-    string name = "0";
-    string file_name = ".\\skelets\\C01\\"+ name + ".svg";
-    file.open(file_name.c_str()); // <- here
-    file << picture.s;
-    file.close();
 
-    cout << molecules[16].size() << endl << "fkjlslkfh";
+
+    cout << "end time = " << clock() << endl;
+    cout << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC;
 
     return 0;
 }
