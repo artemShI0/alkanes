@@ -270,7 +270,7 @@ public:
             return 0;
         }
         if(dy == 0 && t.x < f.y){
-            return - pi;
+            return pi;
         }
         double engle = atan(dy / dx);
         if(dx < 0){
@@ -282,14 +282,18 @@ public:
 
 
     void coordinate_dfs(int v, int p, int st, vector<int>& diameter){            // тут доделай
-        if(p == -1){
+        if(p == -1 && graph[v].size()){
             graph[v].x = 0;
             graph[v].y = 0;
+            graph[graph[v][0]].x = graph[v].x + L * cos(alpha + 2 * alpha * (st == 0 ? -1 : 1));
+            graph[graph[v][0]].y = graph[v].y + L * sin(alpha + 2 * alpha * (st == 0 ? -1 : 1));
+            coordinate_dfs(graph[v][0], v, !st, diameter);
+            return;
         }
         int used = 0;
         for(int i = 0; i < graph[v].size(); ++i){
             if(graph[v][i] != p){
-                double fi = get_engle(graph[v], graph[graph[v][i]]);
+                double fi = get_engle(graph[p], graph[v]);
                 if(used == 0){
                     graph[graph[v][i]].x = graph[v].x + L * cos(fi + 2 * alpha * (st == 0 ? -1 : 1));
                     graph[graph[v][i]].y = graph[v].y + L * sin(fi + 2 * alpha * (st == 0 ? -1 : 1));
@@ -306,16 +310,16 @@ public:
                         graph[graph[v][i]].x = graph[v].x + L * cos(fi - pi / 2);
                         graph[graph[v][i]].y = graph[v].y + L * sin(fi - pi / 2);
                     } else {
-                        graph[graph[v][i]].x = graph[v].x + L * cos(fi + pi / 2);
-                        graph[graph[v][i]].y = graph[v].y + L * sin(fi + pi / 2);
+                        graph[graph[v][i]].x = graph[v].x + L * cos(pi / 2 + fi + 2 * alpha);
+                        graph[graph[v][i]].y = graph[v].y + L * sin(pi / 2 + fi + 2 * alpha);
+                        // graph[graph[v][i]].x = graph[v].x + L * cos(fi + pi / 2);
+                        // graph[graph[v][i]].y = graph[v].y + L * sin(fi + pi / 2);
                     }
                 }
                 used++;
                 coordinate_dfs(graph[v][i], v, !st, diameter);
             }
         }
-
-
     }
 
 
@@ -437,7 +441,7 @@ public:
 int main(){
     clock_t tStart = clock();
     cout << "start time = " << tStart << endl;
-
+    int n = 5;
 
 
 
@@ -450,7 +454,7 @@ int main(){
 
 
 
-    vector<vector<Molecule>> molecules(16);
+    vector<vector<Molecule>> molecules(n);
     Molecule C1;
     molecules[0].push_back(C1);
     for(int i = 1; i < molecules.size(); ++i){
@@ -475,14 +479,37 @@ int main(){
     }
 
 
+    vector<vector<SVG_picture>> pictures(n);
+    for(int i = 0; i < molecules.size(); ++i){
+        for(int j = 0; j < molecules[i].size(); ++j){
+            SVG_picture pict;
+            pict.read_molecule(molecules[i][j]);
+            pictures[i].push_back(pict);
+        }
+    }
+    for(int i = 0; i < pictures.size(); ++i){
+        for(int j = 0; j < pictures[i].size(); ++j){
+            string s = ".\\skelets\\C";
+            s += char(i / 10 + '0');
+            s += char(i % 10 + '0');
+            s += "\\";
+            s += to_string(j);
+            s += ".svg";
+            ofstream file;
+            file.open(s.c_str()); // <- here
+            file << pictures[i][j].s;
+            file.close();
+        }
+    }
+
 
     // SVG_picture picture;
-    // picture.read_molecule(molecules[4][0]);
-    // molecules[4][0].print();
-    // molecules[4][0].draw();
+    // picture.read_molecule(molecules[3][0]);
+    // molecules[3][0].print();
+    // molecules[3][0].draw();
     // ofstream file;
-    // string name = "0";
-    // string file_name = ".\\skelets\\C01\\" + name + ".svg";
+    // string name = "demo2";
+    // string file_name = ".\\" + name + ".svg";
     // file.open(file_name.c_str()); // <- here
     // file << picture.s;
     // file.close();
@@ -490,7 +517,7 @@ int main(){
 
 
     cout << "end time = " << clock() << endl;
-    cout << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC;
+    cout << "all time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC;
 
     return 0;
 }
