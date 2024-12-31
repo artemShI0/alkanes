@@ -453,16 +453,8 @@ public:
 int main(){
     clock_t tStart = clock();
     cout << "start time = " << tStart << endl;
-    int n = 16;
+    int n = 6;
 
-
-
-    for(int i = 1; i < n + 1; ++i){
-        string s = ".\\skelets\\C";
-        s += char(i / 10 + '0');
-        s += char(i % 10 + '0');
-        CreateDirectoryA(s.c_str(), NULL);
-    }
 
 
 
@@ -491,42 +483,53 @@ int main(){
     }
 
 
-    vector<vector<SVG_picture>> pictures(n);
-    for(int i = 0; i < molecules.size(); ++i){
-        for(int j = 0; j < molecules[i].size(); ++j){
-            SVG_picture pict;
-            pict.read_molecule(molecules[i][j]);
-            pictures[i].push_back(pict);
-        }
-    }
-    for(int i = 0; i < pictures.size(); ++i){
-        for(int j = 0; j < pictures[i].size(); ++j){
-            string s = ".\\skelets\\C";
-            s += char((i + 1) / 10 + '0');
-            s += char((i + 1) % 10 + '0');
-            s += "\\";
-            s += to_string(j);
-            s += ".svg";
-            ofstream file;
-            file.open(s.c_str()); // <- here
-            file << pictures[i][j].s;
-            file.close();
-        }
-    }
+
+    Molecule C2(C1, 0);
+    Molecule C3(C2, 0);
+    Molecule C4 (C3, 0);
+    Molecule C5 (C4, 0);
+    Molecule C6 (C5, 4);
+    Molecule C7 (C6, 5);
+    Molecule C8 (C7, 5);
+    Molecule C9 (C8, 4);
+    Molecule C10 (C9, 8);
+    Molecule C11 (C10, 8);
+    Molecule C12 (C11, 8);
+    Molecule C13 (C12, 4);
+    Molecule C14 (C13, 12);
+    Molecule C15 (C14, 12);
+    Molecule C16 (C15, 12);
 
 
-    // SVG_picture picture;
-    // picture.read_molecule(molecules[3][0]);
-    // molecules[3][0].print();
-    // molecules[3][0].draw();
-    // ofstream file;
-    // string name = "demo2";
-    // string file_name = ".\\" + name + ".svg";
-    // file.open(file_name.c_str()); // <- here
-    // file << picture.s;
-    // file.close();
+    Molecule C_2(C1, 0);
+    Molecule C_3(C_2, 0);
+    Molecule C_4 (C_3, 0);
+    Molecule C_5 (C_4, 0);
+    Molecule C_6 (C_5, 1);
+    Molecule C_7 (C_6, 2);
 
 
+    SVG_picture picture;
+    picture.read_molecule(C16);
+    C16.print();
+    C16.draw();
+    ofstream file;
+    string name = "demo2";
+    string file_name = ".\\" + name + ".svg";
+    file.open(file_name.c_str()); // <- here
+    file << picture.s;
+    file.close();
+
+    SVG_picture picture1;
+    picture1.read_molecule(C_7);
+    C_7.print();
+    C_7.draw();
+    ofstream file1;
+    string name1 = "demo1";
+    string file_name1 = ".\\" + name1 + ".svg";
+    file1.open(file_name1.c_str()); // <- here
+    file1 << picture1.s;
+    file1.close();
 
     cout << "end time = " << clock() << endl;
     cout << "all time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC;
