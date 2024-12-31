@@ -469,7 +469,7 @@ public:
 class Page{
 public:
     string s = "";
-
+    int y_max = 0;
 
     void draw_dfs(int v, int p, Molecule& mol, int rx, int ry){                     // dfs для записи в s координат линий в формате для svg
         for (int i = 0; i < mol[v].size(); ++i){
@@ -503,7 +503,7 @@ public:
         s += "<body>\n";
         int rx = 0, ry = 0;
         int dy = 0;
-        s += "    <svg height=\"675\" width=\"1500\" xmlns=\"http://www.w3.org/2000/svg\">\n";
+        s += "    <svg height=\"\" width=\"1500\" xmlns=\"http://www.w3.org/2000/svg\">\n";
         s += '\n';
         for(int i = 0; i < molecules.size(); ++i){
             if(molecules[i].x2 + rx > 1500){
@@ -516,6 +516,7 @@ public:
             rx += molecules[i].x2;
             rx += 25;
             s += '\n';
+            y_max = max(y_max, ry + dy);
         }
         s += "    </svg>\n";
         s += "</body>\n";
@@ -558,21 +559,21 @@ public:
         s += "<body>\n";
         
         for(int i = 0; i < n;  ++i){
-            s += "<form id=\"C";
+            s += "    <form id=\"C";
             s += char((i + 1) / 10 + '0');
             s += char((i + 1) % 10 + '0');
             s += "\" action=\"./pages/C";
             s += char((i + 1) / 10 + '0');
             s += char((i + 1) % 10 + '0');
             s += ".html\">\n";
-            s += "<input id=\"C";
+            s += "        <input id=\"C";
             s += char((i + 1) / 10 + '0');
             s += char((i + 1) % 10 + '0');
             s += "\" type=\"submit\" value=\"C";
             s += char((i + 1) / 10 + '0');
             s += char((i + 1) % 10 + '0');
             s += "\" />\n";
-            s += "</form>\n";
+            s += "    </form>\n";
         }
 
         s += "</body>\n";
@@ -585,7 +586,7 @@ public:
 int main(){
     clock_t tStart = clock();
     cout << "start time = " << tStart << endl;
-    int n = 10;
+    int n = 16;
 
     Unite_page unite_page(n);
     if(true){
@@ -630,6 +631,7 @@ int main(){
     for(int i = 0; i < molecules.size(); ++i){
         Page pg;
         pg.read_molecules(molecules[i]);
+        pg.s.insert(202, to_string(pg.y_max));
         pages.push_back(pg);
     }
 
@@ -662,6 +664,7 @@ int main(){
 
     cout << "end time = " << clock() << endl;
     cout << "all time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC;
+
 
     return 0;
 }
