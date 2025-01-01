@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg">
-<line x1="169" y1="81" x2="253" y2="33" style="stroke:rgb(0,0,0); stroke-width:1" />
-<line x1="253" y1="33" x2="335" y2="81" style="stroke:rgb(0,0,0); stroke-width:1" />
-<line x1="169" y1="81" x2="85" y2="32" style="stroke:rgb(0,0,0); stroke-width:1" />
-<line x1="85" y1="32" x2="0" y2="81" style="stroke:rgb(0,0,0); stroke-width:1" />
-<line x1="169" y1="81" x2="216" y2="163" style="stroke:rgb(0,0,0); stroke-width:1" />
-<line x1="169" y1="81" x2="216" y2="0" style="stroke:rgb(0,0,0); stroke-width:1" />
-</svg>
