@@ -1,1 +1,4 @@
 skelets/
+*.exe
+demo*
+example.html
