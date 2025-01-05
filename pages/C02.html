@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Document</title></head>
+<style>#line {stroke: #000000;stroke-width: 1;}#back{background-color:#ffffff;}#theme{position:fixed;top:5%;left:90%;height:30px;width:100px;font-size:1em;background-color:#000000;}</style>
+<body id="back">
+    <div id="line">
     <svg height="49" width="1500" xmlns="http://www.w3.org/2000/svg">
 
-        <line x1="0" y1="49" x2="85" y2="0" style="stroke:rgb(0,0,0); stroke-width:1" />
+        <line x1="0" y1="49" x2="85" y2="0"/>
 
     </svg>
+    </div><button id="theme"></button>
 </body>
+<script>document.getElementById("theme").onclick = function () {if(window.getComputedStyle(document.getElementById("line"), null).getPropertyValue("stroke") ==  "rgb(255, 255, 255)"){document.getElementById("line").style.stroke = "#000000";document.getElementById("back").style.backgroundColor = "white";document.getElementById("theme").style.backgroundColor = "black";}else{document.getElementById("line").style.stroke = "#ffffff";document.getElementById("back").style.backgroundColor = "black";document.getElementById("theme").style.backgroundColor = "white";}};</script>
 </html>
-

@@ -12,6 +12,9 @@ using namespace std;
 
 
 const double pi = 3.1415926535;
+const long long p = 13;
+const long long m = 18014398241046527;
+vector<long long> pn(50);
 
 
 void print(vector<int> v){
@@ -26,6 +29,24 @@ void print(vector<int> v){
 void mistake(){
     throw length_error("carbon forms only 4 bonds");
 }
+
+long long mod(long long a, long long b){
+    if(a >= 0){
+        return a % b;
+    }
+    return b + a % b;
+}
+
+long long hash_f(string s){
+    long long hash = 0;
+    hash = s[0] - 0;
+    for(int i = 1; i < s.size(); ++i){
+        hash = mod((s[i] - 0) * pn[i] + hash, m);
+    }
+    return hash;
+}
+
+
 
 
 class Atom{
@@ -66,6 +87,7 @@ public:
     vector<Atom> graph;
     vector<int> root;
     vector<string> root_AHU;
+    vector<long long> hash_AHU;
     vector<int> sz;              
     int L = 100;
     int x1 = 1000000000, y1 = 1000000000;
@@ -113,6 +135,9 @@ public:
             build_AHU(AHU2, root[1], -1);
             root_AHU.push_back(AHU1[root[0]]);
             root_AHU.push_back(AHU2[root[1]]);
+        }
+        for(int i = 0; i < root_AHU.size(); ++i){
+            hash_AHU.push_back(hash_f(root_AHU[i]));
         }
         give_coordinates();
     }
@@ -185,10 +210,10 @@ public:
         if(this->size() != other.size()){
             return false;
         }
-        if(this->root_AHU.size() == 1 && other.root_AHU.size() == 1){
-            return this->root_AHU[0] == other.root_AHU[0];
-        } else if(this->root_AHU.size() == 2 && other.root_AHU.size() == 2){
-            return this->root_AHU[0] == other.root_AHU[0] || this->root_AHU[1] == other.root_AHU[1] || this->root_AHU[0] == other.root_AHU[1] || this->root_AHU[1] == other.root_AHU[0];
+        if(this->hash_AHU.size() == 1 && other.hash_AHU.size() == 1){
+            return this->hash_AHU[0] == other.hash_AHU[0];
+        } else if(this->hash_AHU.size() == 2 && other.hash_AHU.size() == 2){
+            return this->hash_AHU[0] == other.hash_AHU[0] || this->hash_AHU[1] == other.hash_AHU[1] || this->hash_AHU[0] == other.hash_AHU[1] || this->hash_AHU[1] == other.hash_AHU[0];
         } else {
             return false;
         }
@@ -484,7 +509,7 @@ public:
             s += to_string(mol[mol[v][i]].x + rx);
             s += "\" y2=\"";
             s += to_string(mol[mol[v][i]].y + ry);
-            s += "\" style=\"stroke:rgb(0,0,0); stroke-width:1\" />";
+            s += "\"/>";
             s += '\n';
             draw_dfs(mol[v][i], v, mol, rx, ry);
         }
@@ -493,14 +518,10 @@ public:
 
     void read_molecules(vector<Molecule>& molecules){                                          // заполняет файл координатами линий в формате svg
         s = "";
-        s += "<!DOCTYPE html>\n";
-        s += "<html lang=\"en\">\n";
-        s += "<head>\n";
-        s += "    <meta charset=\"UTF-8\">\n";
-        s += "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
-        s += "    <title>Document</title>\n";
-        s += "</head>\n";
-        s += "<body>\n";
+        s += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Document</title></head>\n";
+        s += "<style>#line {stroke: #000000;stroke-width: 1;}#back{background-color:#ffffff;}#theme{position:fixed;top:5%;left:90%;height:30px;width:100px;font-size:1em;background-color:#000000;}</style>\n";
+        s += "<body id=\"back\">\n";
+        s += "    <div id=\"line\">\n";
         int rx = 0, ry = 0;
         int dy = 0;
         s += "    <svg height=\"\" width=\"1500\" xmlns=\"http://www.w3.org/2000/svg\">\n";
@@ -519,9 +540,11 @@ public:
             y_max = max(y_max, ry + dy);
         }
         s += "    </svg>\n";
+
+        s += "    </div><button id=\"theme\"></button>\n";
         s += "</body>\n";
+        s += "<script>document.getElementById(\"theme\").onclick = function () {if(window.getComputedStyle(document.getElementById(\"line\"), null).getPropertyValue(\"stroke\") ==  \"rgb(255, 255, 255)\"){document.getElementById(\"line\").style.stroke = \"#000000\";document.getElementById(\"back\").style.backgroundColor = \"white\";document.getElementById(\"theme\").style.backgroundColor = \"black\";}else{document.getElementById(\"line\").style.stroke = \"#ffffff\";document.getElementById(\"back\").style.backgroundColor = \"black\";document.getElementById(\"theme\").style.backgroundColor = \"white\";}};</script>\n";
         s += "</html>\n";
-        s += '\n';
     }
 };
 
@@ -588,6 +611,13 @@ int main(){
     cout << "start time = " << tStart << endl;
     int n = 16;
 
+
+    pn[0] = 1;
+    for(int i = 1; i < pn.size(); ++i){
+        pn[i] = mod(pn[i - 1] * p, m);
+    }
+
+
     Unite_page unite_page(n);
     if(true){
         string s = ".\\index.html";
@@ -631,7 +661,7 @@ int main(){
     for(int i = 0; i < molecules.size(); ++i){
         Page pg;
         pg.read_molecules(molecules[i]);
-        pg.s.insert(202, to_string(pg.y_max));
+        pg.s.insert(404, to_string(pg.y_max));
         pages.push_back(pg);
     }
 
@@ -648,17 +678,6 @@ int main(){
 
     cout << "molecules.size() = " << molecules.size() << endl;
     cout << "pages.size() = " << pages.size() << endl;
-
-    // SVG_picture picture;
-    // picture.read_molecule(molecules[3][0]);
-    // molecules[3][0].print();
-    // molecules[3][0].draw();
-    // ofstream file;
-    // string name = "demo2";
-    // string file_name = ".\\" + name + ".svg";
-    // file.open(file_name.c_str()); // <- here
-    // file << picture.s;
-    // file.close();
 
 
 
