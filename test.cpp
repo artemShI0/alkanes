@@ -12,6 +12,9 @@ using namespace std;
 
 
 const double pi = 3.1415926535;
+const long long p = 13;
+const long long m = 18014398241046527;
+vector<long long> pn(50);
 
 
 void print(vector<int> v){
@@ -26,6 +29,24 @@ void print(vector<int> v){
 void mistake(){
     throw length_error("carbon forms only 4 bonds");
 }
+
+long long mod(long long a, long long b){
+    if(a >= 0){
+        return a % b;
+    }
+    return b + a % b;
+}
+
+long long hash_f(string s){
+    long long hash = 0;
+    hash = s[0] - 0;
+    for(int i = 1; i < s.size(); ++i){
+        hash = mod((s[i] - 0) * pn[i] + hash, m);
+    }
+    return hash;
+}
+
+
 
 
 class Atom{
@@ -50,11 +71,11 @@ public:
     }
 
     int size(){
-        return connection.size();
+        return connection.size();                                   // возвращает количество связей атома
     }
     
 
-    int& operator[](int i){
+    int& operator[](int i){                                        // возвращает номер i-того связаного атома
         return connection[i];
     }
 
@@ -66,13 +87,16 @@ public:
     vector<Atom> graph;
     vector<int> root;
     vector<string> root_AHU;
+    vector<long long> hash_AHU;
     vector<int> sz;              
     int L = 100;
+    int x1 = 1000000000, y1 = 1000000000;
+    int x2 = -1000000000, y2 = -1000000000;
     double alpha = pi / 6;
 
 
 
-    Molecule(){
+    Molecule(){                                                 // конструктор метана
         Atom C;
         graph.push_back(C);
         sz.resize(this->size());
@@ -93,7 +117,7 @@ public:
     }
 
     
-    Molecule(Molecule& other, int number){
+    Molecule(Molecule& other, int number){                                  // конструктор присоединяющий к n-ному атому еще один
         Atom C(other.size());
         this->graph = other.graph;
         this->graph.push_back(C);
@@ -112,10 +136,13 @@ public:
             root_AHU.push_back(AHU1[root[0]]);
             root_AHU.push_back(AHU2[root[1]]);
         }
+        for(int i = 0; i < root_AHU.size(); ++i){
+            hash_AHU.push_back(hash_f(root_AHU[i]));
+        }
         give_coordinates();
     }
 
-    void centroid_dfs(int v){                                                         
+    void centroid_dfs(int v){                                                          // dfs для поиска центроида
         sz[v] = 1;
         for (int i = 0; i < graph[v].size(); ++i){
             if (sz[graph[v][i]] != 0){
@@ -127,7 +154,7 @@ public:
     }
 
 
-    int getCentroid(){                                                                          // ищет первый центроид
+    int getCentroid(){                                                                  // ищет первый центроид
         int v = 0;
         centroid_dfs(v);
         while(true){
@@ -150,7 +177,7 @@ public:
     }
 
 
-    void getCentroids(){                                                                          // определяет оба центроида
+    void getCentroids(){                                                                   // определяет оба центроида
         int v = getCentroid();
         root.push_back(v);
         for (int i = 0; i < graph[v].size(); ++i){
@@ -179,14 +206,14 @@ public:
     }
 
 
-    bool operator==(Molecule other){
+    bool operator==(Molecule other){                                            // сравнивает AHU молекул
         if(this->size() != other.size()){
             return false;
         }
-        if(this->root_AHU.size() == 1 && other.root_AHU.size() == 1){
-            return this->root_AHU[0] == other.root_AHU[0];
-        } else if(this->root_AHU.size() == 2 && other.root_AHU.size() == 2){
-            return this->root_AHU[0] == other.root_AHU[0] || this->root_AHU[1] == other.root_AHU[1] || this->root_AHU[0] == other.root_AHU[1] || this->root_AHU[1] == other.root_AHU[0];
+        if(this->hash_AHU.size() == 1 && other.hash_AHU.size() == 1){
+            return this->hash_AHU[0] == other.hash_AHU[0];
+        } else if(this->hash_AHU.size() == 2 && other.hash_AHU.size() == 2){
+            return this->hash_AHU[0] == other.hash_AHU[0] || this->hash_AHU[1] == other.hash_AHU[1] || this->hash_AHU[0] == other.hash_AHU[1] || this->hash_AHU[1] == other.hash_AHU[0];
         } else {
             return false;
         }
@@ -194,7 +221,7 @@ public:
 
 
 
-    void diameter_dfs(int v, int d, int p, pair<int, int>& mx){                                                     
+    void diameter_dfs(int v, int d, int p, pair<int, int>& mx){                            // запускает bfs для определения атомов, принадлежащих к диаметру                      
         if(mx.first < d){
             mx.first = d;
             mx.second = v;
@@ -208,7 +235,7 @@ public:
 
 
 
-    vector<int> coordinates_bfs(int s,int f) {                                                          // возвращает массив с номерами вершин диаметра
+    vector<int> coordinates_bfs(int s,int f) {                                               // возвращает массив с номерами вершин диаметра
         vector<int> parent(this->size());
         vector<int> dist(this->size(), 1000000000);
         vector<int> rez;
@@ -257,7 +284,7 @@ public:
         return -1;
     }
 
-    double get_engle(Atom& f, Atom& t){
+    double get_engle(Atom& f, Atom& t){                              // определяет угол между горизонталью и линией, соединяющей координаты двух атомов
         double dx = t.x - f.x;
         double dy = t.y - f.y;
         if(dx == 0 && t.y >= f.y){
@@ -281,7 +308,7 @@ public:
 
 
 
-    void coordinate_dfs(int v, int p, int st, vector<int>& diameter){            // тут доделай
+    void coordinate_dfs(int v, int p, int st, vector<int>& diameter){            // dfs определяющий координаты каждого атома
         this->L -= 1;
         if(p == -1 && graph[v].size()){
             graph[v].x = 0;
@@ -356,6 +383,20 @@ public:
             graph[i].x -= x0;
             graph[i].y -= y0;
         }
+        for(int i = 0; i < this->size(); i++){
+            if(graph[i].x < this->x1){
+                this->x1 = graph[i].x;
+            }
+            if(graph[i].y < this->y1){
+                this->y1 = graph[i].y;
+            }
+            if(graph[i].x > this->x2){
+                this->x2 = graph[i].x;
+            }
+            if(graph[i].y > this->y2){
+                this->y2 = graph[i].y;
+            }
+        }
     }
 
 
@@ -371,13 +412,13 @@ public:
 
 
 
-    void draw(int dx = 0, int dy = 0){                                                  // рисует все связи
-        for(int i = 0; i < this->size(); ++i){                                   //доделай       
+    void draw(int dx = 0, int dy = 0){                                                  // выводит координаты всех атомов
+        for(int i = 0; i < this->size(); ++i){                                                 
             cout << i << ": (" << graph[i].x << ":" << graph[i].y << ")" << endl;                                                               
         }
     }
 
-    void print(){
+    void print(){                                                                   // выводит список смежности
         for(int i = 0; i < size(); ++i){
             cout << graph[i].number << ": ";
             for(int j  = 0; j < graph[i].size(); ++j){
@@ -388,7 +429,7 @@ public:
         cout << endl;
     }
 
-    void print(vector<int> v){
+    void print(vector<int> v){                                                     // выводит вектор
         cout << "size = " << v.size() << endl;
         for(int i = 0; i < v.size(); ++i){
             cout << v[i] << ' ';
@@ -398,7 +439,7 @@ public:
 
 
 
-    void print(ofstream& file_out){
+    void print(ofstream& file_out){                                               // вводит список смежности в файл       
         for(int i = 0; i < size(); ++i){
             file_out << graph[i].number << ": ";
             for(int j  = 0; j < graph[i].size(); ++j){
@@ -417,7 +458,7 @@ public:
     string s = "";
 
 
-    void draw_dfs(int v, int p, vector<int>& used, Molecule& mol){
+    void draw_dfs(int v, int p, vector<int>& used, Molecule& mol){                     // dfs для записи в s координат линий в формате для svg
         for (int i = 0; i < mol[v].size(); ++i){
             if(mol[v][i] == p){
                 continue;
@@ -437,7 +478,7 @@ public:
     }
 
 
-    void read_molecule(Molecule& mol){
+    void read_molecule(Molecule& mol){                                          // заполняет файл координатами линий в формате svg
         vector<int> used(mol.size());
         s = "";
         s += "<svg xmlns=\"http://www.w3.org/2000/svg\">";
@@ -450,11 +491,172 @@ public:
 
 
 
+class Page{
+public:
+    string s = "";
+    int y_max = 0;
+
+    void draw_dfs(int v, int p, Molecule& mol, int rx, int ry, int alkane_number){                     // dfs для записи в s координат линий в формате для svg
+        for (int i = 0; i < mol[v].size(); ++i){
+            if(mol[v][i] == p){
+                continue;
+            }
+            s += "        <line ";
+            s += "id=\"" + to_string(alkane_number) + "_" + to_string(v) + "_" + to_string(mol[v][i]) + "\" ";
+            s += "x1=\"";
+            s += to_string(mol[v].x + rx);
+            s += "\" y1=\"";
+            s += to_string(mol[v].y + ry);
+            s += "\" x2=\"";
+            s += to_string(mol[mol[v][i]].x + rx);
+            s += "\" y2=\"";
+            s += to_string(mol[mol[v][i]].y + ry);
+            s += "\"/>";
+            s += '\n';
+            draw_dfs(mol[v][i], v, mol, rx, ry, alkane_number);
+        }
+    }
+
+
+    void read_molecules(vector<Molecule>& molecules){                                          // заполняет файл координатами линий в формате svg
+        s = "";
+        s += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Document</title></head>\n";
+        s += "<style>#line {stroke: #000000;stroke-width: 1;}#back{background-color:#ffffff;}#theme{position:fixed;top:5%;left:90%;height:30px;width:100px;font-size:1em;background-color:#000000;}</style>\n";
+        s += "<body id=\"back\">\n";
+        s += "    <div id=\"line\">\n";
+        int rx = 0, ry = 0;
+        int dy = 0;
+        s += "    <svg height=\"\" width=\"1500\" xmlns=\"http://www.w3.org/2000/svg\">\n";
+        s += '\n';
+        for(int i = 0; i < molecules.size(); ++i){
+            if(molecules[i].x2 + rx > 1500){
+                rx = 0;
+                ry += dy + 25;
+                dy = 0;
+            }
+            draw_dfs(0, -1, molecules[i], rx, ry, i);
+            dy = max(dy, molecules[i].y2);
+            rx += molecules[i].x2;
+            rx += 25;
+            s += '\n';
+            y_max = max(y_max, ry + dy);
+        }
+        s += "    </svg>\n";
+
+        s += "    </div><button id=\"theme\"></button>\n";
+        s += "</body>\n";
+        s += "<script>\n";
+
+        s += "var alkanes = [";
+        for(int i = 0; i < molecules.size(); ++i){
+            s += "[";
+            for(int j = 0; j < molecules[i].size(); ++j){
+                s += "[";
+                for(int k = 0; k < molecules[i][j].size(); ++k){
+                    s += to_string(molecules[i][j][k]) + ",";
+                }
+                s += "]";
+            }
+            s += "]";
+        }
+        s += "];\n";
+
+        s += "var coordinates = [";
+        for(int i = 0; i < molecules.size(); ++i){
+            s += "[";
+            for(int j = 0; j < molecules[i].size(); ++j){
+                s += "[" + to_string(molecules[i][j].x) + "," + to_string(molecules[i][j].y) + "]";
+            }
+            s += "]";
+        }
+        s += "];\n";
+        s += "document.getElementById(\"theme\").onclick = function () {if(window.getComputedStyle(document.getElementById(\"line\"), null).getPropertyValue(\"stroke\") ==  \"rgb(255, 255, 255)\"){document.getElementById(\"line\").style.stroke = \"#000000\";document.getElementById(\"back\").style.backgroundColor = \"white\";document.getElementById(\"theme\").style.backgroundColor = \"black\";}else{document.getElementById(\"line\").style.stroke = \"#ffffff\";document.getElementById(\"back\").style.backgroundColor = \"black\";document.getElementById(\"theme\").style.backgroundColor = \"white\";}};\n";
+        s += "</script>\n";
+        s += "</html>\n";
+    }
+};
+
+
+class Unite_page{
+public:
+    string s = "";
+
+    Unite_page(int n){                                          
+        s = "";
+        s += "<!DOCTYPE html>\n";
+        s += "<html lang=\"en\">\n";
+        s += "<head>\n";
+        s += "    <meta charset=\"UTF-8\">\n";
+        s += "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
+        s += "    <title>Document</title>\n";
+        s += "    <style>\n";
+        for(int i = 0; i < n; ++i){
+            s += "      #C";
+            s += char((i + 1) / 10 + '0');
+            s += char((i + 1) % 10 + '0');
+            s += " {\n";
+            s += "          position: fixed;\n";
+            s += "          top: ";
+            s += to_string(335 - (n / 2 + n % 2) * 30 + i * 30);
+            s += "px;\n";
+            s += "          left: 600px;\n";
+            s += "          height: 30px;\n";
+            s += "          width: 300px;\n";
+            s += "          font-size: 1em;\n";
+            s += "      }\n";
+        }
+        s += "    </style>\n";
+        s += "</head>\n";
+        s += "<body>\n";
+        
+        for(int i = 0; i < n;  ++i){
+            s += "    <form id=\"C";
+            s += char((i + 1) / 10 + '0');
+            s += char((i + 1) % 10 + '0');
+            s += "\" action=\"./demo_pages/C";
+            s += char((i + 1) / 10 + '0');
+            s += char((i + 1) % 10 + '0');
+            s += ".html\">\n";
+            s += "        <input id=\"C";
+            s += char((i + 1) / 10 + '0');
+            s += char((i + 1) % 10 + '0');
+            s += "\" type=\"submit\" value=\"C";
+            s += char((i + 1) / 10 + '0');
+            s += char((i + 1) % 10 + '0');
+            s += "\" />\n";
+            s += "    </form>\n";
+        }
+
+        s += "</body>\n";
+        s += "</html>\n";
+        s += '\n';
+    }
+};
+
+
 int main(){
     clock_t tStart = clock();
     cout << "start time = " << tStart << endl;
     int n = 6;
 
+
+    pn[0] = 1;
+    for(int i = 1; i < pn.size(); ++i){
+        pn[i] = mod(pn[i - 1] * p, m);
+    }
+
+
+    Unite_page unite_page(n);
+    if(true){
+        string s = ".\\demo3.html";
+        ofstream file;
+        file.open(s.c_str()); // <- here
+        file << unite_page.s;
+        file.close();
+    }
+
+    string folder_name = "demo_pages";
+    CreateDirectoryA(folder_name.c_str(), NULL);
 
 
 
@@ -479,60 +681,37 @@ int main(){
                 }
             }
         }
-        cout << "C" << i + 1 << ": " << molecules[i].size() << " isomers" << endl;
+        cout << "C" << i + 1 << ": " << molecules[i].size() << " isomers" << "   ";
+        cout << "time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC << endl;
     }
 
 
+    vector<Page> pages;
+    for(int i = 0; i < molecules.size(); ++i){
+        Page pg;
+        pg.read_molecules(molecules[i]);
+        pg.s.insert(404, to_string(pg.y_max));
+        pages.push_back(pg);
+    }
 
-    Molecule C2(C1, 0);
-    Molecule C3(C2, 0);
-    Molecule C4 (C3, 0);
-    Molecule C5 (C4, 0);
-    Molecule C6 (C5, 4);
-    Molecule C7 (C6, 5);
-    Molecule C8 (C7, 5);
-    Molecule C9 (C8, 4);
-    Molecule C10 (C9, 8);
-    Molecule C11 (C10, 8);
-    Molecule C12 (C11, 8);
-    Molecule C13 (C12, 4);
-    Molecule C14 (C13, 12);
-    Molecule C15 (C14, 12);
-    Molecule C16 (C15, 12);
+    for(int i = 0; i < pages.size(); ++i){
+        string s = ".\\demo_pages\\C";
+        s += char((i + 1) / 10 + '0');
+        s += char((i + 1) % 10 + '0');
+        s += ".html";
+        ofstream file;
+        file.open(s.c_str()); // <- here
+        file << pages[i].s;
+        file.close();
+    }
 
-
-    Molecule C_2(C1, 0);
-    Molecule C_3(C_2, 0);
-    Molecule C_4 (C_3, 0);
-    Molecule C_5 (C_4, 0);
-    Molecule C_6 (C_5, 1);
-    Molecule C_7 (C_6, 2);
+    cout << "molecules.size() = " << molecules.size() << endl;
+    cout << "pages.size() = " << pages.size() << endl;
 
 
-    SVG_picture picture;
-    picture.read_molecule(C16);
-    C16.print();
-    C16.draw();
-    ofstream file;
-    string name = "demo2";
-    string file_name = ".\\" + name + ".svg";
-    file.open(file_name.c_str()); // <- here
-    file << picture.s;
-    file.close();
-
-    SVG_picture picture1;
-    picture1.read_molecule(C_7);
-    C_7.print();
-    C_7.draw();
-    ofstream file1;
-    string name1 = "demo1";
-    string file_name1 = ".\\" + name1 + ".svg";
-    file1.open(file_name1.c_str()); // <- here
-    file1 << picture1.s;
-    file1.close();
 
     cout << "end time = " << clock() << endl;
-    cout << "all time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC;
+    cout << "all time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC << endl;
 
     return 0;
 }

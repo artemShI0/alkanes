@@ -453,7 +453,7 @@ public:
 int main(){
     clock_t tStart = clock();
     cout << "start time = " << tStart << endl;
-    int n = 16;
+    int n = 9;
 
 
 

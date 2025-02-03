@@ -65212,5 +65212,12 @@
     </svg>
     </div><button id="theme"></button>
 </body>
-<script>document.getElementById("theme").onclick = function () {if(window.getComputedStyle(document.getElementById("line"), null).getPropertyValue("stroke") ==  "rgb(255, 255, 255)"){document.getElementById("line").style.stroke = "#000000";document.getElementById("back").style.backgroundColor = "white";document.getElementById("theme").style.backgroundColor = "black";}else{document.getElementById("line").style.stroke = "#ffffff";document.getElementById("back").style.backgroundColor = "black";document.getElementById("theme").style.backgroundColor = "white";}};</script>
+<script>document.getElementById("theme").onclick = function () {
+if(window.getComputedStyle(document.getElementById("line"), null).getPropertyValue("stroke") ==  "rgb(255, 255, 255)"){
+document.getElementById("line").style.stroke = "#000000";
+document.getElementById("back").style.backgroundColor = "white";
+document.getElementById("theme").style.backgroundColor = "black";}
+else{document.getElementById("line").style.stroke = "#ffffff";
+document.getElementById("back").style.backgroundColor = "black";document.getElementById("theme").style.backgroundColor = "white";}};
+</script>
 </html>
