@@ -722,6 +722,8 @@ int main()
         file << unite_page.s;
         file.close();
     
+        molecules[i - 1].clear();
+        
         cout << "C" << i + 1 << ": " << molecules[i].size() << " isomers" << "   ";
         cout << "time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC << endl;
     }
