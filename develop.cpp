@@ -351,7 +351,7 @@ public:
 
                 graph[graph[v][i]].x = graph[v].x + L * cos((-pi / 2 + fi) * (!st) + (pi / 2 - _fi) * (st));
                 graph[graph[v][i]].y = graph[v].y + L * sin((-pi / 2 + fi) * (!st) + (pi / 2 - _fi) * (st));
-                coordinate_dfs(graph[v][i], v, !st, diameter, dist + 1);
+                coordinate_dfs(graph[v][i], v, st, diameter, dist + 1);
             }
         used++;
     }
@@ -662,7 +662,7 @@ public:
 
 int main()
 {
-    int n = 11;
+    int n = 16;
     clock_t tStart = clock();
 
 
