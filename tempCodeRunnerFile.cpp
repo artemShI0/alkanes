@@ -1,3 +1,10 @@
-                    graph[graph[v][i]].x = graph[v].x + L * cos((-2 * alpha + fi) * (!st) + (2 * alpha - _fi) * (st));
-                    graph[graph[v][i]].y = graph[v].y + L * sin((-2 * alpha + fi) * (!st) + (2 * alpha - _fi) * (st));
-                    coordinate_dfs(graph[v][i], v, !st, diameter, dist + 1);
+        // for (int j = 0; j < molecules[i].size(); j += m){
+        //     vector<thread> th;
+        //     for(int l = 0; l < m && j + l < molecules[i].size(); ++l){
+        //         thread t(&Molecule::build, molecules[i][j + m]);
+        //         th.push_back(move(t)); 
+        //     }
+        //     for(int l = 0; l < m && j + l < molecules[i - 1].size(); ++l){
+        //         th[l].join();
+        //     }  
+        // }

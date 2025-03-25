@@ -8,6 +8,8 @@
 #include <fstream>
 #include <windows.h>
 #include <time.h>
+#include <thread>
+#include <mutex>
 using namespace std;
 
 const double pi = 3.1415926535;
@@ -660,11 +662,46 @@ public:
     }
 };
 
+
+mutex mtx;
+void generate_molecule(vector<vector<Molecule>>& molecules, vector<Molecule>& prepear_molecules, int i, int j){
+    for (int k = 0; k < molecules[i - 1][j].size(); ++k){
+        if (molecules[i - 1][j][k].size() > 3){
+            continue;
+        }
+        Molecule C(molecules[i - 1][j], k);
+        mtx.lock();
+        prepear_molecules.push_back(C);
+        mtx.unlock();
+    }
+}
+
+
+
+void clean_molecules(vector<Molecule>& prepear_molecules, vector<Molecule>& clear_molecules){
+    bool already = false;
+    clear_molecules.push_back(prepear_molecules[0]);
+    for(int i = 1; i < prepear_molecules.size(); ++i){
+        already = false;
+        for(int j = 0; j < clear_molecules.size(); ++j){
+            if(prepear_molecules[i] == clear_molecules[j]){
+                already = true;
+                break;
+            }
+        }
+        if(!already){
+            clear_molecules.push_back(prepear_molecules[i]);
+        }
+    }
+}
+
+
 int main()
 {
     int n = 16;
+    int m = 5;
+    cout << "m = " << m << endl;
     clock_t tStart = clock();
-
 
     string folder_name = "pages";
     CreateDirectoryA(folder_name.c_str(), NULL);
@@ -679,27 +716,30 @@ int main()
 
     for (int i = 1; i < n; ++i){
         molecules.resize(molecules.size() + 1);
-        for (int j = 0; j < molecules[i - 1].size(); ++j){
-            for (int k = 0; k < molecules[i - 1][j].size(); ++k){
-                if (molecules[i - 1][j][k].size() > 3){
-                    continue;
-                }
-                Molecule C(molecules[i - 1][j], k);
-                bool already = false;
-                for (int l = 0; l < molecules[i].size(); ++l)              // можно ускорить бин поиском
-                {
-                    if (molecules[i][l] == C)
-                    {
-                        already = true;
-                    }
-                }
-                if (!already)
-                {
-                    C.build();
-                    molecules[i].push_back(C);
-                }
+        vector<Molecule> prepear_molecules;
+        for (int j = 0; j < molecules[i - 1].size(); j += m){
+            vector<thread> th;
+            for(int l = 0; l < m && j + l < molecules[i - 1].size(); ++l){
+                thread t(generate_molecule, ref(molecules), ref(prepear_molecules), i, j + l);
+                th.push_back(move(t)); 
             }
+            for(int l = 0; l < th.size(); ++l){
+                th[l].join();
+            }  
         }
+        clean_molecules(prepear_molecules, molecules[i]);
+        for (int j = 0; j < molecules[i].size(); j += m){
+            vector<thread> th;
+            for(int l = 0; l < m && j + l < molecules[i].size(); ++l){
+                thread t(&Molecule::build, molecules[i][j + l]);
+                th.push_back(move(t)); 
+            }
+            for(int l = 0; l < th.size(); ++l){
+                th[l].join();
+            }  
+        }
+
+
         Page page;
         page.read_molecules(molecules[i]);
         page.s.insert(610, to_string(page.y_max));
@@ -726,9 +766,9 @@ int main()
         
         cout << "C" << i + 1 << ": " << molecules[i].size() << " isomers" << "   ";
         cout << "time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC << endl;
+    
+    
     }
-
-
     cout << "all time: " << 1.0 * (clock() - tStart) / CLOCKS_PER_SEC;
 
     return 0;
