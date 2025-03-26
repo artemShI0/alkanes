@@ -666,7 +666,7 @@ public:
             s += "},";
         }
         s += "];";
-        s += "    function draw_dfs(v,p,mol,rx,ry,number){for(let i=0;i<mol.connectivity[v].length;++i){if(mol.connectivity[v][i]==p){continue;}let id=number.toString()+\"_\"+v.toString()+\"_\"+mol.connectivity[v][i].toString();let line=document.getElementById(id);line.setAttribute(\"x1\",(Math.floor(mol.coordinates[v][0]*k)+rx).toString());line.setAttribute(\"y1\",(Math.floor(mol.coordinates[v][1]*k)+ry).toString());line.setAttribute(\"x2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][0]*k)+rx).toString());line.setAttribute(\"y2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][1]*k)+ry).toString());if(mol.chiral[v]){let circle = document.getElementById(id + \"_h\");circle.setAttribute( \"cx\", (Math.floor(mol.coordinates[v][0] * k) + rx).toString());circle.setAttribute( \"cy\", (Math.floor(mol.coordinates[v][1] * k) + ry).toString());} draw_dfs(mol.connectivity[v][i],v,mol,rx,ry,number);}}function change(){let y_max=0;let rx=0,ry=0;let dy=0;for(let i=0;i<molecules.length;++i){if(Math.floor(molecules[i].x2*k)+rx>1500){rx=0;ry+=dy+Math.floor(25*k);dy=0;}draw_dfs(0,-1,molecules[i],rx,ry,i);dy=Math.max(dy,Math.floor(molecules[i].y2*k));rx+=Math.floor(molecules[i].x2*k);rx+=Math.floor(25*k);y_max=Math.max(y_max,ry+dy);}document.getElementById(\"svg\").setAttribute(\"height\",y_max.toString());}document.getElementById(\"small\").onclick=function(){k-=0.1;change();};document.getElementById(\"big\").onclick=function(){k+=0.1;change();};";
+        s += "    function draw_dfs(v,p,mol,rx,ry,number){for(let i=0;i<mol.connectivity[v].length;++i){if(mol.connectivity[v][i]==p){continue;}let id=number.toString()+\"_\"+v.toString()+\"_\"+mol.connectivity[v][i].toString();let line=document.getElementById(id);line.setAttribute(\"x1\",(Math.floor(mol.coordinates[v][0]*k)+rx).toString());line.setAttribute(\"y1\",(Math.floor(mol.coordinates[v][1]*k)+ry).toString());line.setAttribute(\"x2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][0]*k)+rx).toString());line.setAttribute(\"y2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][1]*k)+ry).toString());if(mol.chiral[v]){let circle = document.getElementById(id + \"_h\");circle.setAttribute( \"cx\", (Math.floor(mol.coordinates[v][0] * k) + rx).toString());circle.setAttribute( \"cy\", (Math.floor(mol.coordinates[v][1] * k) + ry).toString());circle.setAttribute(\"r\",(Math.ceil(5 * k)).toString());} draw_dfs(mol.connectivity[v][i],v,mol,rx,ry,number);}}function change(){let y_max=0;let rx=0,ry=0;let dy=0;for(let i=0;i<molecules.length;++i){if(Math.floor(molecules[i].x2*k)+rx>1500){rx=0;ry+=dy+Math.floor(25*k);dy=0;}draw_dfs(0,-1,molecules[i],rx,ry,i);dy=Math.max(dy,Math.floor(molecules[i].y2*k));rx+=Math.floor(molecules[i].x2*k);rx+=Math.floor(25*k);y_max=Math.max(y_max,ry+dy);}document.getElementById(\"svg\").setAttribute(\"height\",y_max.toString());}document.getElementById(\"small\").onclick=function(){k-=0.1;change();};document.getElementById(\"big\").onclick=function(){k+=0.1;change();};";
         s += "document.getElementById(\"theme\").onclick = function () {if(window.getComputedStyle(document.getElementById(\"line\"), null).getPropertyValue(\"stroke\") ==  \"rgb(255, 255, 255)\"){document.getElementById(\"line\").style.stroke = \"#000000\";document.getElementById(\"back\").style.backgroundColor = \"white\";document.getElementById(\"theme\").style.backgroundColor = \"black\";}else{document.getElementById(\"line\").style.stroke = \"#ffffff\";document.getElementById(\"back\").style.backgroundColor = \"black\";document.getElementById(\"theme\").style.backgroundColor = \"white\";}};";
         s += "</script>";
         s += "</html>\n";
@@ -696,11 +696,11 @@ public:
             s += " {\n";
             s += "          position: fixed;\n";
             s += "          top: ";
-            s += to_string(335 - (n / 2 + n % 2) * 30 + i * 30);
-            s += "px;\n";
-            s += "          left: 600px;\n";
-            s += "          height: 30px;\n";
-            s += "          width: 300px;\n";
+            s += to_string(10 + i * 5);
+            s += "%;\n";
+            s += "          left: 40%;\n";
+            s += "          height: 5%;\n";
+            s += "          width: 20%;\n";
             s += "          font-size: 1em;\n";
             s += "      }\n";
         }
