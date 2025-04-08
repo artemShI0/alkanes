@@ -23,7 +23,6 @@
               }
             ],
             "windows": {
-              "miDebuggerPath": "D:/Artem/Informatics/Codes/C++/alkanes/raylib/w64devkit/bin/gdb.exe",
             },
             "osx": {
               "MIMode": "lldb"
@@ -46,7 +45,6 @@
             "MIMode": "gdb",
             "windows": {
               "program": "${workspaceFolder}/${fileBasenameNoExtension}.exe",
-              "miDebuggerPath": "D:/Artem/Informatics/Codes/C++/alkanes/raylib/w64devkit/bin/gdb.exe"
             },
             "osx": {
               "MIMode": "lldb"

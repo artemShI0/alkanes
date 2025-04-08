@@ -10,11 +10,19 @@
 #include <time.h>
 #include <thread>
 #include <mutex>
+#include <set>
 using namespace std;
 
 const double pi = 3.1415926535;
 const long long p = 13;
 const long long m = 18014398241046527;
+
+void print_v(vector<int> v){
+    for(int i = 0; i < v.size(); ++i){
+        cout << v[i] << ' ';
+    }
+    cout << endl;
+}
 
 void mistake()
 {
@@ -68,6 +76,8 @@ public:
 class Molecule
 {
 public:
+    vector<int> chiral_atom;
+    vector<int> part_chiral_atom;
     vector<Atom> graph;
     int root1 = -1, root2 = -1;
     string AHU1 = "", AHU2 = "";
@@ -83,7 +93,7 @@ public:
         Atom C;
         graph.push_back(C);
         root1 = 0;
-        AHU1 = "(0)";
+        AHU1 = "()";
     }
 
     // конструктор присоединяющий к n-ному атому еще один
@@ -116,8 +126,54 @@ public:
     void build()
     {
         give_coordinates();
-    }
 
+        chiral_atom.resize(size());
+        part_chiral_atom.resize(size());
+        for(int i = 0; i < size(); ++i){
+            string AHU = chiral_AHU_dfs(i, -1);
+            vector<string> AHUS;
+            set<string> s;
+            bool st = true;
+            int open = 0; 
+            for(int j = 1; j < AHU.size() - 1; ++j){
+                open += (AHU[j] == '(' ? 1 : -1);
+                if(open >= 1 && !st){
+                    AHUS.back().push_back(AHU[j]);
+                } else if(open == 1 && st == true){
+                    AHUS.push_back("(");
+                    st = !st;
+                } else if(open == 0) {
+                    AHUS.back().push_back(AHU[j]);
+                    st = !st;
+                }
+            }
+            for(int j = 0; j < AHUS.size(); ++j){
+                s.insert(AHUS[j]);
+            }
+            if(s.size() > 3 || s.size() == 3 && graph[i].size() == 3){
+                chiral_atom[i] = 1;
+            }
+        }
+    }
+    string chiral_AHU_dfs(int v, int p)
+    {
+        vector<string> children;
+        for (int i = 0; i < graph[v].size(); ++i)
+        {
+            if (graph[v][i] == p)
+            {
+                continue;
+            }
+            children.push_back(chiral_AHU_dfs(graph[v][i], v));
+        }
+        sort(children.begin(), children.end());
+        string sm = "";
+        for (int i = 0; i < children.size(); ++i)
+        {
+            sm += children[i];
+        }
+        return "(" + sm + ")";
+    }
     // dfs для поиска центроида
     void centroid_dfs(int v)
     {
@@ -194,7 +250,7 @@ public:
         {
             sm += children[i];
         }
-        AHU[v] = "(0" + sm + ")";
+        AHU[v] = "(" + sm + ")";
     }
 
     // сравнивает AHU молекул
@@ -545,6 +601,16 @@ public:
             s += "id=\"" + to_string(number) + "_" + to_string(v) + "_" + to_string(mol[v][i]) + "\" ";
             s += "/>";
             s += '\n';
+            if(mol.chiral_atom[v]){
+                s += "<circle cx=\"";
+                s += to_string(mol[v].x + rx);
+                s += "\" cy=\"";
+                s += to_string(mol[v].y + ry);
+                s += "\" r=\"5\" ";
+                s += "id=\"" + to_string(number) + "_" + to_string(v) + "_" + to_string(mol[v][i]) + "_h" + "\" ";
+                s += "/>";
+                s += '\n';
+            }
             draw_dfs(mol[v][i], v, mol, rx, ry, number);
         }
     }
@@ -588,6 +654,11 @@ public:
         for (int i = 0; i < molecules.size(); ++i)
         {
             s += "{";
+            s += "chiral: [";
+            for(int j = 0; j < molecules[i].chiral_atom.size(); ++j){
+                s += to_string(molecules[i].chiral_atom[j]) + ", ";
+            }
+            s += "], \n";
             s += "x2: " + to_string(molecules[i].x2) + ",";
             s += "y2: " + to_string(molecules[i].y2) + ",";
             s += "coordinates: " + molecules[i].coordinates() + ",";
@@ -595,7 +666,7 @@ public:
             s += "},";
         }
         s += "];";
-        s += "    function draw_dfs(v,p,mol,rx,ry,number){for(let i=0;i<mol.connectivity[v].length;++i){if(mol.connectivity[v][i]==p){continue;}let id=number.toString()+\"_\"+v.toString()+\"_\"+mol.connectivity[v][i].toString();let line=document.getElementById(id);line.setAttribute(\"x1\",(Math.floor(mol.coordinates[v][0]*k)+rx).toString());line.setAttribute(\"y1\",(Math.floor(mol.coordinates[v][1]*k)+ry).toString());line.setAttribute(\"x2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][0]*k)+rx).toString());line.setAttribute(\"y2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][1]*k)+ry).toString());draw_dfs(mol.connectivity[v][i],v,mol,rx,ry,number);}}function change(){let y_max=0;let rx=0,ry=0;let dy=0;for(let i=0;i<molecules.length;++i){if(Math.floor(molecules[i].x2*k)+rx>1500){rx=0;ry+=dy+Math.floor(25*k);dy=0;}draw_dfs(0,-1,molecules[i],rx,ry,i);dy=Math.max(dy,Math.floor(molecules[i].y2*k));rx+=Math.floor(molecules[i].x2*k);rx+=Math.floor(25*k);y_max=Math.max(y_max,ry+dy);}document.getElementById(\"svg\").setAttribute(\"height\",y_max.toString());}document.getElementById(\"small\").onclick=function(){k-=0.1;change();};document.getElementById(\"big\").onclick=function(){k+=0.1;change();};";
+        s += "    function draw_dfs(v,p,mol,rx,ry,number){for(let i=0;i<mol.connectivity[v].length;++i){if(mol.connectivity[v][i]==p){continue;}let id=number.toString()+\"_\"+v.toString()+\"_\"+mol.connectivity[v][i].toString();let line=document.getElementById(id);line.setAttribute(\"x1\",(Math.floor(mol.coordinates[v][0]*k)+rx).toString());line.setAttribute(\"y1\",(Math.floor(mol.coordinates[v][1]*k)+ry).toString());line.setAttribute(\"x2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][0]*k)+rx).toString());line.setAttribute(\"y2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][1]*k)+ry).toString());if(mol.chiral[v]){let circle = document.getElementById(id + \"_h\");circle.setAttribute( \"cx\", (Math.floor(mol.coordinates[v][0] * k) + rx).toString());circle.setAttribute( \"cy\", (Math.floor(mol.coordinates[v][1] * k) + ry).toString());circle.setAttribute(\"r\",(Math.ceil(5 * k)).toString());} draw_dfs(mol.connectivity[v][i],v,mol,rx,ry,number);}}function change(){let y_max=0;let rx=0,ry=0;let dy=0;for(let i=0;i<molecules.length;++i){if(Math.floor(molecules[i].x2*k)+rx>1500){rx=0;ry+=dy+Math.floor(25*k);dy=0;}draw_dfs(0,-1,molecules[i],rx,ry,i);dy=Math.max(dy,Math.floor(molecules[i].y2*k));rx+=Math.floor(molecules[i].x2*k);rx+=Math.floor(25*k);y_max=Math.max(y_max,ry+dy);}document.getElementById(\"svg\").setAttribute(\"height\",y_max.toString());}document.getElementById(\"small\").onclick=function(){k-=0.1;change();};document.getElementById(\"big\").onclick=function(){k+=0.1;change();};";
         s += "document.getElementById(\"theme\").onclick = function () {if(window.getComputedStyle(document.getElementById(\"line\"), null).getPropertyValue(\"stroke\") ==  \"rgb(255, 255, 255)\"){document.getElementById(\"line\").style.stroke = \"#000000\";document.getElementById(\"back\").style.backgroundColor = \"white\";document.getElementById(\"theme\").style.backgroundColor = \"black\";}else{document.getElementById(\"line\").style.stroke = \"#ffffff\";document.getElementById(\"back\").style.backgroundColor = \"black\";document.getElementById(\"theme\").style.backgroundColor = \"white\";}};";
         s += "</script>";
         s += "</html>\n";
@@ -625,11 +696,11 @@ public:
             s += " {\n";
             s += "          position: fixed;\n";
             s += "          top: ";
-            s += to_string(335 - (n / 2 + n % 2) * 30 + i * 30);
-            s += "px;\n";
-            s += "          left: 600px;\n";
-            s += "          height: 30px;\n";
-            s += "          width: 300px;\n";
+            s += to_string(10 + i * 5);
+            s += "%;\n";
+            s += "          left: 40%;\n";
+            s += "          height: 5%;\n";
+            s += "          width: 20%;\n";
             s += "          font-size: 1em;\n";
             s += "      }\n";
         }
@@ -699,7 +770,7 @@ void clean_molecules(vector<Molecule>& prepear_molecules, vector<Molecule>& clea
 void my_main(int m)
 {
     cout << "m = " << m << endl;
-    int n = 10;
+    int n = 18;
 
     clock_t tStart = clock();
 
@@ -713,7 +784,7 @@ void my_main(int m)
     molecules.reserve(n);
     Molecule C1;
     molecules[0].push_back(C1);
-
+// 
     for (int i = 1; i < n; ++i){
         molecules.resize(molecules.size() + 1);
         vector<Molecule> prepear_molecules;
@@ -739,7 +810,7 @@ void my_main(int m)
             }  
         }
 
-        molecules[i][0].draw();
+
         Page page;
         page.read_molecules(molecules[i]);
         page.s.insert(610, to_string(page.y_max));
@@ -775,7 +846,5 @@ void my_main(int m)
 
 
 int main(){
-    for(int i = 1; i < 2; ++i){
-        my_main(i);
-    }
+    my_main(7);
 }

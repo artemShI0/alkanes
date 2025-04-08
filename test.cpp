@@ -767,10 +767,10 @@ void clean_molecules(vector<Molecule>& prepear_molecules, vector<Molecule>& clea
 }
 
 
-void my_main(int m)
+void my_main(int n, int m)
 {
     cout << "m = " << m << endl;
-    int n = 16;
+
 
     clock_t tStart = clock();
 
@@ -784,7 +784,7 @@ void my_main(int m)
     molecules.reserve(n);
     Molecule C1;
     molecules[0].push_back(C1);
-
+// 
     for (int i = 1; i < n; ++i){
         molecules.resize(molecules.size() + 1);
         vector<Molecule> prepear_molecules;
@@ -846,7 +846,17 @@ void my_main(int m)
 
 
 int main(){
-    for(int i = 7; i < 8; ++i){
-        my_main(i);
+    int from, to;
+    cout << "from: ";
+    cin >> from;
+    cout << "to (including): ";
+    cin >> to;
+    int n;
+    cout << "carbons: ";
+    cin >> n;
+    for(int i = from; i <= to; i++){
+        my_main(n, i);
     }
+    int x;
+    cin >> x;
 }
