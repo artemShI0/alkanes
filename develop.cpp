@@ -23,45 +23,41 @@ map<string, int> idx{
     {"Cl", 3},
     {"I", 4},
 };
-        
 
-void print_v(vector<int> v){
-    for(int i = 0; i < v.size(); ++i){
+void print_v(vector<int> v)
+{
+    for (int i = 0; i < v.size(); ++i)
+    {
         cout << v[i] << ' ';
     }
     cout << endl;
 }
-
 
 void mistake()
 {
     throw length_error("carbon forms only 4 bonds");
 }
 
-
-vector<string> split(string s, char sep){
+vector<string> split(string s, char sep)
+{
     vector<string> ans;
-    string cur = "";
-    if(s.size() == 0){
-        return ans;
-    }
-    if(s[0] != sep){
-        cur += s[0];
-    }
-    for(int i = 1; i < s.size(); ++i){
-        if(s[i] == sep){
-            ans.push_back(cur);
-            cur = "";
-        } else {
+    int i = 0;
+    string cur;
+    while (i < s.size())
+    {
+
+        cur = "";
+        i++;
+        while (s[i] != sep)
+        {
             cur += s[i];
+            i++;
         }
-    }
-    if(cur != ""){
         ans.push_back(cur);
+        i++;
     }
     return ans;
 }
-
 
 class Atom
 {
@@ -78,9 +74,20 @@ public:
         idx = _idx;
     }
 
-// добавляет атому новую связь
+    // конструктор восстанавливающий атом по строке
+    Atom(int _number, string s)
+    {
+        number = _number;
+        vector<string> v = split(s, ',');
+        for (int i = 0; i < v.size(); ++i)
+        {
+            connection.push_back(stoi(v[i]));
+        }
+    }
+
+    // добавляет атому новую связь
     void connect(Atom &other)
-    { 
+    {
         this->connection.push_back(other.number);
         other.connection.push_back(this->number);
         if (this->size() > 4 || other.size() > 4)
@@ -89,20 +96,18 @@ public:
         }
     }
 
-// возвращает количество связей атома
+    // возвращает количество связей атома
     int size()
     {
-        return connection.size(); 
+        return connection.size();
     }
 
-// возвращает номер i-того связанного атома
+    // возвращает номер i-того связанного атома
     int &operator[](int i)
-    { 
+    {
         return connection[i];
     }
 };
-
-
 
 class Molecule
 {
@@ -153,34 +158,79 @@ public:
         }
     }
 
+    // конструктор восстанавливающий молекулу по строке
+    Molecule(string s)
+    {
+        if (s == "!!")
+        {
+            Atom C;
+            graph.push_back(C);
+            root1 = 0;
+            AHU1 = "()";
+            return;
+        }
+        vector<string> v = split(s, '!');
+        for (int i = 0; i < v.size(); ++i)
+        {
+            graph.push_back(Atom{i, v[i]});
+        }
+
+        sz.resize(size());
+        getCentroids();
+        if (root2 == -1)
+        {
+            vector<string> ahu(size());
+            build_AHU(ahu, root1, -1);
+            AHU1 = ahu[root1];
+        }
+        else
+        {
+            vector<string> ahu1(size());
+            vector<string> ahu2(size());
+            build_AHU(ahu1, root1, -1);
+            build_AHU(ahu2, root2, -1);
+            AHU1 = ahu1[root1];
+            AHU2 = ahu2[root2];
+        }
+    }
+
     // запускает все методы после того, как определили, что берем молекулу
     void build()
     {
         give_coordinates();
         chiral_atom.resize(size());
         part_chiral_atom.resize(size());
-        for(int i = 0; i < size(); ++i){
+        for (int i = 0; i < size(); ++i)
+        {
             string AHU = chiral_AHU_dfs(i, -1);
             vector<string> AHUS;
             set<string> s;
             bool st = true;
-            int open = 0; 
-            for(int j = 1; j < AHU.size() - 1; ++j){
+            int open = 0;
+            for (int j = 1; j < AHU.size() - 1; ++j)
+            {
                 open += (AHU[j] == '(' ? 1 : -1);
-                if(open >= 1 && !st){
+                if (open >= 1 && !st)
+                {
                     AHUS.back().push_back(AHU[j]);
-                } else if(open == 1 && st == true){
+                }
+                else if (open == 1 && st == true)
+                {
                     AHUS.push_back("(");
                     st = !st;
-                } else if(open == 0) {
+                }
+                else if (open == 0)
+                {
                     AHUS.back().push_back(AHU[j]);
                     st = !st;
                 }
             }
-            for(int j = 0; j < AHUS.size(); ++j){
+            for (int j = 0; j < AHUS.size(); ++j)
+            {
                 s.insert(AHUS[j]);
             }
-            if(s.size() > 3 || s.size() == 3 && graph[i].size() == 3){
+            if (s.size() > 3 || s.size() == 3 && graph[i].size() == 3)
+            {
                 chiral_atom[i] = 1;
             }
         }
@@ -392,7 +442,7 @@ public:
 
     // dfs определяющий координаты каждого атома
     void coordinate_dfs(int v, int p, int st, vector<int> &diameter, int dist)
-    { 
+    {
         L--;
         if (p == -1 && graph[v].size())
         {
@@ -441,87 +491,83 @@ public:
                 graph[graph[v][i]].y = graph[v].y + L * sin((-pi / 2 + fi) * (!st) + (pi / 2 - _fi) * (st));
                 coordinate_dfs(graph[v][i], v, st, diameter, dist + 1);
             }
-        used++;
-    }
-}
-
-
-// задает координаты атомам 
-void give_coordinates()
-{ 
-    vector<int> diameter;
-    pair<int, int> edge1 = {0, 0};
-    pair<int, int> edge2 = {0, 0};
-    diameter_dfs(root1, 0, -1, edge1);
-    diameter_dfs(edge1.second, 0, -1, edge2);
-    diameter = coordinates_bfs(edge1.second, edge2.second); // в diameter хранятся индексы вершин, принадлежащих одному из диаметров
-    coordinate_dfs(edge2.second, -1, 0, diameter, 0);
-    int x0 = 0, y0 = 0;
-    for (int i = 0; i < this->size(); i++)
-    {
-        x0 = min(graph[i].x, x0);
-        y0 = min(graph[i].y, y0);
-    }
-    for (int i = 0; i < this->size(); i++)
-    {
-        graph[i].x -= x0;
-        graph[i].y -= y0;
-    }
-    for (int i = 0; i < this->size(); i++)
-    {
-        this->x1 = min(this->x1, graph[i].x);
-        this->y1 = min(this->y1, graph[i].y);
-        this->x2 = max(this->x2, graph[i].x);
-        this->y2 = max(this->y2, graph[i].y);
-    }
-}
-
-// возвращает количество атомов в молекуле
-int size()
-{
-    return graph.size();
-}
-
-// возвращает ссылку i-тый атом
-Atom &operator[](int i)
-{
-    return graph[i];
-}
-
-
-// возвращает строку с координатами атомов
-string coordinates()
-{ 
-    string s = "";
-    s += "[";
-    for (int i = 0; i < size(); ++i)
-    {
-        s += "[" + to_string(graph[i].x) + ", " + to_string(graph[i].y) + "], ";
-    }
-    s += "]";
-    return s;
-}
-
-// возвращает строку со списком смежности
-string connectivity()
-{ 
-    string s = "";
-    s += "[";
-    for (int i = 0; i < size(); ++i)
-    {
-        s += "[";
-        for (int j = 0; j < graph[i].size(); ++j)
-        {
-            s += to_string(graph[i][j]) + ", ";
+            used++;
         }
-        s += "], ";
     }
-    s += "]";
-    return s;
-}
+
+    // задает координаты атомам
+    void give_coordinates()
+    {
+        vector<int> diameter;
+        pair<int, int> edge1 = {0, 0};
+        pair<int, int> edge2 = {0, 0};
+        diameter_dfs(root1, 0, -1, edge1);
+        diameter_dfs(edge1.second, 0, -1, edge2);
+        diameter = coordinates_bfs(edge1.second, edge2.second); // в diameter хранятся индексы вершин, принадлежащих одному из диаметров
+        coordinate_dfs(edge2.second, -1, 0, diameter, 0);
+        int x0 = 0, y0 = 0;
+        for (int i = 0; i < this->size(); i++)
+        {
+            x0 = min(graph[i].x, x0);
+            y0 = min(graph[i].y, y0);
+        }
+        for (int i = 0; i < this->size(); i++)
+        {
+            graph[i].x -= x0;
+            graph[i].y -= y0;
+        }
+        for (int i = 0; i < this->size(); i++)
+        {
+            this->x1 = min(this->x1, graph[i].x);
+            this->y1 = min(this->y1, graph[i].y);
+            this->x2 = max(this->x2, graph[i].x);
+            this->y2 = max(this->y2, graph[i].y);
+        }
+    }
+
+    // возвращает количество атомов в молекуле
+    int size()
+    {
+        return graph.size();
+    }
+
+    // возвращает ссылку i-тый атом
+    Atom &operator[](int i)
+    {
+        return graph[i];
+    }
+
+    // возвращает строку с координатами атомов
+    string coordinates()
+    {
+        string s = "";
+        s += "[";
+        for (int i = 0; i < size(); ++i)
+        {
+            s += "[" + to_string(graph[i].x) + ", " + to_string(graph[i].y) + "], ";
+        }
+        s += "]";
+        return s;
+    }
+
+    // возвращает строку со списком смежности
+    string connectivity()
+    {
+        string s = "";
+        s += "[";
+        for (int i = 0; i < size(); ++i)
+        {
+            s += "[";
+            for (int j = 0; j < graph[i].size(); ++j)
+            {
+                s += to_string(graph[i][j]) + ", ";
+            }
+            s += "], ";
+        }
+        s += "]";
+        return s;
+    }
 };
-
-
 
 class SVG_picture
 {
@@ -562,17 +608,15 @@ public:
     }
 };
 
-
-
 class Page
 {
 public:
     string s = "";
     int y_max = 0;
 
-// dfs для записи в s координат линий в формате для svg
+    // dfs для записи в s координат линий в формате для svg
     void draw_dfs(int v, int p, Molecule &mol, int rx, int ry, int number)
-    { 
+    {
         for (int i = 0; i < mol[v].size(); ++i)
         {
             if (mol[v][i] == p)
@@ -591,7 +635,8 @@ public:
             s += "id=\"" + to_string(number) + "_" + to_string(v) + "_" + to_string(mol[v][i]) + "\" ";
             s += "/>";
             s += '\n';
-            if(mol.chiral_atom[v]){
+            if (mol.chiral_atom[v])
+            {
                 s += "<circle cx=\"";
                 s += to_string(mol[v].x + rx);
                 s += "\" cy=\"";
@@ -605,9 +650,9 @@ public:
         }
     }
 
-// заполняет файл координатами линий в формате svg
+    // заполняет файл координатами линий в формате svg
     void read_molecules(vector<Molecule> &molecules)
-    { 
+    {
         s = "";
         s += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Document</title></head>\n";
         s += "<style>#line {stroke: #000000;stroke-width: 1;}#back{background-color:#ffffff;}#theme{position:fixed;top:5%;left:90%;height:30px;width:100px;font-size:1em;background-color:#000000;}#small{position:fixed;top:10%;left:90%;height:30px;width:100px;font-size:1em;background-color:#482048;}#big{position: fixed;top: 15%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color:#00db56;}</style>\n";
@@ -645,7 +690,8 @@ public:
         {
             s += "{";
             s += "chiral: [";
-            for(int j = 0; j < molecules[i].chiral_atom.size(); ++j){
+            for (int j = 0; j < molecules[i].chiral_atom.size(); ++j)
+            {
                 s += to_string(molecules[i].chiral_atom[j]) + ", ";
             }
             s += "], \n";
@@ -662,8 +708,6 @@ public:
         s += "</html>\n";
     }
 };
-
-
 
 class Unite_page
 {
@@ -725,12 +769,13 @@ public:
     }
 };
 
-
-
 mutex mtx;
-void generate_molecule(vector<vector<Molecule>>& molecules, vector<Molecule>& prepear_molecules, int i, int j){
-    for (int k = 0; k < molecules[i - 1][j].size(); ++k){
-        if (molecules[i - 1][j][k].size() > 3){
+void generate_molecule(vector<vector<Molecule>> &molecules, vector<Molecule> &prepear_molecules, int i, int j)
+{
+    for (int k = 0; k < molecules[i - 1][j].size(); ++k)
+    {
+        if (molecules[i - 1][j][k].size() > 3)
+        {
             continue;
         }
         Molecule C(molecules[i - 1][j], k);
@@ -740,59 +785,163 @@ void generate_molecule(vector<vector<Molecule>>& molecules, vector<Molecule>& pr
     }
 }
 
-void clean_molecules(vector<Molecule>& prepear_molecules, vector<Molecule>& clear_molecules){
+void clean_molecules(vector<Molecule> &prepear_molecules, vector<Molecule> &clear_molecules)
+{
     bool already = false;
     clear_molecules.push_back(prepear_molecules[0]);
-    for(int i = 1; i < prepear_molecules.size(); ++i){
+    for (int i = 1; i < prepear_molecules.size(); ++i)
+    {
         already = false;
-        for(int j = 0; j < clear_molecules.size(); ++j){
-            if(prepear_molecules[i] == clear_molecules[j]){
+        for (int j = 0; j < clear_molecules.size(); ++j)
+        {
+            if (prepear_molecules[i] == clear_molecules[j])
+            {
                 already = true;
                 break;
             }
         }
-        if(!already){
+        if (!already)
+        {
             clear_molecules.push_back(prepear_molecules[i]);
         }
     }
 }
 
-
-
-class Molecule_container{
+class Molecule_container
+{
 public:
     vector<vector<Molecule>> molecules;
     int n;
     int m;
     clock_t tStart;
     ofstream skeleton;
-    
 
-    Molecule_container(int _n, int _m, int generation_type){
-        molecules.resize(1);
-        tStart = clock();
+    Molecule_container(int _n, int _m, int gt, string s = "")
+    {
         n = _n;
         m = _m;
-        Molecule C1;
-        molecules[0].push_back(C1);
-        
-        string s = "skeletons.txt";
-        skeleton.open(s.c_str(), std::ios_base::app);         
-        skeleton << "$?!";
+        tStart = clock();
 
-        if(generation_type == 0){
-            step_generation();
-        } else if(generation_type == 1){
-            general_generation();
+        if (s == "")
+        {
+            molecules.resize(1);
+            Molecule C1;
+            molecules[0].push_back(C1);
+            string s = "skeletons.txt";
+            skeleton.open(s.c_str());
+            skeleton << "$?!!?$";
+
+            if (gt == 0)
+            {
+                step_generation();
+            }
+            else if (gt == 1)
+            {
+                general_generation();
+            }
+            skeleton.close();
         }
-        skeleton.close();
-        
+        else
+        {
+
+            vector<string> v = split(s, '$');
+            for (int i = 0; i < v.size(); ++i)
+            {
+                molecules.push_back(vector<Molecule>());
+                vector<string> r = split(v[i], '?');
+                for (int j = 0; j < r.size(); ++j)
+                {
+                    molecules[i].push_back(Molecule{r[j]});
+                }
+            }
+            // настрой чтобы в разных случаях файл открывался для записи и для дозаписи текста
+            for (int i = molecules.size(); i < n; ++i)
+            {
+                generate_layer_skelets(i);
+                build_layer(i);
+                save_layer(i);
+                draw_layer(i);
+                molecules[i - 1].clear();
+            }
+        }
+
         cout << "all time: " << 1.0 * (clock() - tStart) / CLOCKS_PER_SEC;
-        cout << endl << endl;
+        cout << endl
+             << endl;
     }
 
-    void step_generation(){
-        for (int i = 1; i < n; ++i){
+    // создать молекулы и сохранить их скелеты в файл
+    // genetation_type = 0 -> пошаговая генерация
+    // genetation_type = 1 -> сплошная генерация
+    // Molecule_container(int _n, int _m, int generation_type){
+    //     molecules.resize(1);
+    //     tStart = clock();
+    //     n = _n;
+    //     m = _m;
+    //     Molecule C1;
+    //     molecules[0].push_back(C1);
+
+    //     string s = "skeletons.txt";
+    //     skeleton.open(s.c_str());
+    //     skeleton << "$?!!?$";
+
+    //     if(generation_type == 0){
+    //         step_generation();
+    //     } else if(generation_type == 1){
+    //         general_generation();
+    //     }
+    //     skeleton.close();
+
+    //     cout << "all time: " << 1.0 * (clock() - tStart) / CLOCKS_PER_SEC;
+    //     cout << endl << endl;
+    // }
+
+    // конструктор восстанавливающий контейнер молекул по строке
+    Molecule_container(string s)
+    {
+        vector<string> v = split(s, '$');
+        for (int i = 0; i < v.size(); ++i)
+        {
+            molecules.push_back(vector<Molecule>());
+            vector<string> r = split(v[i], '?');
+            for (int j = 0; j < r.size(); ++j)
+            {
+                molecules[i].push_back(Molecule{r[j]});
+            }
+        }
+        for (int i = 0; i < molecules.size(); ++i)
+        {
+            build_layer(i);
+            draw_layer(i);
+        }
+    }
+    void print()
+    {
+        for (int i = 0; i < molecules.size(); ++i)
+        {
+            cout << "C" << i + 1 << ": \n";
+            for (int j = 0; j < molecules[i].size(); ++j)
+            {
+                cout << "\t" << j << ":\n";
+                for (int k = 0; k < molecules[i][j].size(); ++k)
+                {
+                    cout << "\t\t" << k << ": ";
+                    for (int l = 0; l < molecules[i][j][k].size(); ++l)
+                    {
+                        cout << molecules[i][j][k][l] << ", ";
+                    }
+                    cout << "\n";
+                }
+                cout << "\n";
+            }
+            cout << "\n";
+        }
+    }
+
+    void step_generation()
+    {
+        for (int i = molecules.size(); i < n; ++i)
+        {
             generate_layer_skelets(i);
             build_layer(i);
             save_layer(i);
@@ -801,55 +950,65 @@ public:
         }
     }
 
-
-    void general_generation(){
-        for (int i = 1; i < n; ++i){
+    void general_generation()
+    {
+        for (int i = molecules.size(); i < n; ++i)
+        {
             generate_layer_skelets(i);
         }
-        for (int i = 1; i < n; ++i){
+        for (int i = molecules.size(); i < n; ++i)
+        {
             build_layer(i);
         }
-        for (int i = 1; i < n; ++i){
+        for (int i = molecules.size(); i < n; ++i)
+        {
             save_layer(i);
         }
-        for (int i = 1; i < n; ++i){
+        for (int i = molecules.size(); i < n; ++i)
+        {
             draw_layer(i);
         }
     }
 
-
-    void generate_layer_skelets(int i){
+    void generate_layer_skelets(int i)
+    {
         molecules.resize(molecules.size() + 1);
         vector<Molecule> prepear_molecules;
-        for (int j = 0; j < molecules[i - 1].size(); j += m){
+        for (int j = 0; j < molecules[i - 1].size(); j += m)
+        {
             vector<thread> th;
-            for(int l = 0; l < m && j + l < molecules[i - 1].size(); ++l){
+            for (int l = 0; l < m && j + l < molecules[i - 1].size(); ++l)
+            {
                 thread t(generate_molecule, ref(molecules), ref(prepear_molecules), i, j + l);
-                th.push_back(move(t)); 
+                th.push_back(move(t));
             }
-            for(int l = 0; l < th.size(); ++l){
+            for (int l = 0; l < th.size(); ++l)
+            {
                 th[l].join();
-            }  
+            }
         }
         clean_molecules(prepear_molecules, molecules[i]);
     }
 
-
-    void build_layer(int i){
-        for (int j = 0; j < molecules[i].size(); j += m){
+    void build_layer(int i)
+    {
+        for (int j = 0; j < molecules[i].size(); j += m)
+        {
             vector<thread> th;
-            for(int l = 0; l < m && j + l < molecules[i].size(); ++l){
+            for (int l = 0; l < m && j + l < molecules[i].size(); ++l)
+            {
                 thread t(&Molecule::build, &molecules[i][j + l]);
-                th.push_back(move(t)); 
+                th.push_back(move(t));
             }
-            for(int l = 0; l < th.size(); ++l){
+            for (int l = 0; l < th.size(); ++l)
+            {
                 th[l].join();
-            }  
+            }
         }
     }
 
-
-    void draw_layer(int i){
+    void draw_layer(int i)
+    {
         Page page;
         page.read_molecules(molecules[i]);
         page.s.insert(610, to_string(page.y_max));
@@ -871,42 +1030,69 @@ public:
         file.open(s.c_str());
         file << unite_page.s;
         file.close();
-        
+
         cout << "C" << i + 1 << ": " << molecules[i].size() << " isomers" << "   ";
-        cout << "time: " << 1.0 * (clock() - tStart)/CLOCKS_PER_SEC << endl;
+        cout << "time: " << 1.0 * (clock() - tStart) / CLOCKS_PER_SEC << endl;
     }
 
-    void save_layer(int i){
+    void save_layer(int i)
+    {
         skeleton << "$";
-        for(int j = 0; j < molecules[i].size(); ++j){
+        for (int j = 0; j < molecules[i].size(); ++j)
+        {
             skeleton << "?";
-            for(int k = 0; k < molecules[i][j].size(); ++k){
+            for (int k = 0; k < molecules[i][j].size(); ++k)
+            {
                 skeleton << "!";
-                for(int l = 0; l < molecules[i][j][k].size(); ++l){
-                    skeleton << "," << molecules[i][j][k][l];
+                for (int l = 0; l < molecules[i][j][k].size(); ++l)
+                {
+                    skeleton << "," << molecules[i][j][k][l] << ",";
                 }
+                skeleton << "!";
             }
+            skeleton << "?";
         }
+        skeleton << "$";
     }
 };
 
+int main()
+{
 
+    // int mode;
+    // cin >> mode;
 
+    // if(mode == 0){
+    //     int n;
+    //     int m;
+    //     cout << "\n\nCreate a directory and name it \"pages\"\n\n";
+    //     cout << "if you have created a directory, with name \"pages\" press Enter";
+    //     cin.get();
 
-int main(){
-    int n;
-    int m;
-    cout << "\n\nCreate a directory and name it \"pages\"\n\n";
-    cout << "if you have created a directory, with name \"pages\" press Enter";
-    cin.get();
+    //     cout << "\nHow many threads do you want to use?\n";
 
-    cout << "\nHow many threads do you want to use?\n";
-    cout << "If you don't know what it is, you take 1\n";
-    cin >> m;
-    
-    cout << "\nEnter the amount of carbon in the largest alkane\n";
-    cin >> n;
-    Molecule_container(n, m, 0);
-    int x;
-    cin >> x; 
+    //     cout << "If you don't know what it is, you take 1\n";
+    //     cin >> m;
+
+    //     cout << "\nEnter the amount of carbon in the largest alkane\n";
+    //     cin >> n;
+    //     Molecule_container(n, m, 0);
+    //     int x;
+    //     cin >> x;
+    // } else {
+    //     ifstream skeletons("skeletons.txt");
+    //     string s;
+    //     skeletons >> s;
+    //     Molecule_container{s};
+    // }
+
+    int n = 13;
+    int m = 1;
+
+    ifstream skeletons("skeletons.txt");
+    string s;
+    skeletons >> s;
+    Molecule_container{s};
+
+    Molecule_container(n, m, 0, s);
 }
