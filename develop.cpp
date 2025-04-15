@@ -16,6 +16,7 @@ using namespace std;
 const double pi = 3.1415926535;
 const long long p = 13;
 const long long m = 18014398241046527;
+
 map<string, int> idx{
     {"C", 0},
     {"F", 1},
@@ -61,6 +62,7 @@ vector<string> split(string s, char sep)
 
 class Atom
 {
+
 public:
     bool diametre;
     int number = 0;
@@ -129,13 +131,13 @@ public:
         Atom C;
         graph.push_back(C);
         root1 = 0;
-        AHU1 = "()";
+        AHU1 = "(0)";
     }
 
     // конструктор присоединяющий к n-ному атому еще один
-    Molecule(Molecule &other, int number)
+    Molecule(Molecule &other, int number, int idx = 0)
     {
-        Atom C(other.size());
+        Atom C(other.size(), idx);
         graph = other.graph;
         graph.push_back(C);
         graph[number].connect(graph[size() - 1]);
@@ -166,7 +168,7 @@ public:
             Atom C;
             graph.push_back(C);
             root1 = 0;
-            AHU1 = "()";
+            AHU1 = "(0)";
             return;
         }
         vector<string> v = split(s, '!');
@@ -235,6 +237,7 @@ public:
             }
         }
     }
+
     string chiral_AHU_dfs(int v, int p)
     {
         vector<string> children;
@@ -252,7 +255,7 @@ public:
         {
             sm += children[i];
         }
-        return "(" + sm + ")";
+        return "(" + graph[v].idx + sm + ")";
     }
     // dfs для поиска центроида
     void centroid_dfs(int v)
@@ -330,7 +333,7 @@ public:
         {
             sm += children[i];
         }
-        AHU[v] = "(" + sm + ")";
+        AHU[v] = "(" + graph[v].idx + sm + ")";
     }
 
     // сравнивает AHU молекул
@@ -807,14 +810,38 @@ void clean_molecules(vector<Molecule> &prepear_molecules, vector<Molecule> &clea
     }
 }
 
+void add_hal_to_molecule(vector<Molecule> &prepear_molecules, Molecule &base_mol, vector<int> hal)
+{
+    Molecule mol = base_mol;
+    for (int i = 0; i < hal.size(); ++i)
+    {
+        mol = Molecule(mol, i, hal[i]);
+    }
+    prepear_molecules.push_back(mol);
+}
+
+void create_isomers_for_molecule(vector<int> &main_hal, Molecule &molecule, vector<Molecule> &isomers_for_molecule)
+{
+    vector<int> hal = main_hal;
+    vector<Molecule> prepear_molecules;
+    add_hal_to_molecule(prepear_molecules, molecule, hal);
+    while (next_permutation(hal.begin(), hal.end()))
+    {
+        add_hal_to_molecule(prepear_molecules, molecule, hal);
+    }
+    clean_molecules(prepear_molecules, isomers_for_molecule);
+}
+
 class Molecule_container
 {
 public:
     vector<vector<Molecule>> molecules;
+    vector<vector<vector<Molecule>>> hal_molecules;
     int n;
     int m;
     clock_t tStart;
-    ofstream skeleton;
+    ifstream in;
+    ofstream out;
 
     Molecule_container(int _n, int _m, int gt, string s = "")
     {
@@ -822,83 +849,12 @@ public:
         m = _m;
         tStart = clock();
 
-        if (s == "")
-        {
-            molecules.resize(1);
-            Molecule C1;
-            molecules[0].push_back(C1);
-            string s = "skeletons.txt";
-            skeleton.open(s.c_str());
-            skeleton << "$?!!?$";
+        string href = "skeletons.txt";
+        in.open(href.c_str());
+        in >> s;
+        in.close();
+        out.open(href.c_str(), ios::app);
 
-            if (gt == 0)
-            {
-                step_generation();
-            }
-            else if (gt == 1)
-            {
-                general_generation();
-            }
-            skeleton.close();
-        }
-        else
-        {
-
-            vector<string> v = split(s, '$');
-            for (int i = 0; i < v.size(); ++i)
-            {
-                molecules.push_back(vector<Molecule>());
-                vector<string> r = split(v[i], '?');
-                for (int j = 0; j < r.size(); ++j)
-                {
-                    molecules[i].push_back(Molecule{r[j]});
-                }
-            }
-            // настрой чтобы в разных случаях файл открывался для записи и для дозаписи текста
-            for (int i = molecules.size(); i < n; ++i)
-            {
-                generate_layer_skelets(i);
-                build_layer(i);
-                save_layer(i);
-                draw_layer(i);
-                molecules[i - 1].clear();
-            }
-        }
-
-        cout << "all time: " << 1.0 * (clock() - tStart) / CLOCKS_PER_SEC;
-        cout << endl
-             << endl;
-    }
-
-    // создать молекулы и сохранить их скелеты в файл
-    // genetation_type = 0 -> пошаговая генерация
-    // genetation_type = 1 -> сплошная генерация
-    // Molecule_container(int _n, int _m, int generation_type){
-    //     molecules.resize(1);
-    //     tStart = clock();
-    //     n = _n;
-    //     m = _m;
-    //     Molecule C1;
-    //     molecules[0].push_back(C1);
-
-    //     string s = "skeletons.txt";
-    //     skeleton.open(s.c_str());
-    //     skeleton << "$?!!?$";
-
-    //     if(generation_type == 0){
-    //         step_generation();
-    //     } else if(generation_type == 1){
-    //         general_generation();
-    //     }
-    //     skeleton.close();
-
-    //     cout << "all time: " << 1.0 * (clock() - tStart) / CLOCKS_PER_SEC;
-    //     cout << endl << endl;
-    // }
-
-    // конструктор восстанавливающий контейнер молекул по строке
-    Molecule_container(string s)
-    {
         vector<string> v = split(s, '$');
         for (int i = 0; i < v.size(); ++i)
         {
@@ -909,12 +865,41 @@ public:
                 molecules[i].push_back(Molecule{r[j]});
             }
         }
-        for (int i = 0; i < molecules.size(); ++i)
+
+        if (s == "")
         {
-            build_layer(i);
-            draw_layer(i);
+            molecules.resize(1);
+            Molecule C1;
+            molecules[0].push_back(C1);
+            out << "$?!!?$";
         }
+
+        if (gt == 0)
+        {
+            for (int i = 1; i < molecules.size(); ++i)
+            {
+                build_layer(i);
+                draw_layer(i);
+                molecules[i - 1].clear();
+            }
+        }
+
+        if (gt == 0)
+        {
+            step_generation();
+        }
+        else if (gt == 1)
+        {
+            general_generation();
+        }
+
+        out.close();
+
+        cout << "all time: " << 1.0 * (clock() - tStart) / CLOCKS_PER_SEC;
+        cout << endl
+             << endl;
     }
+
     void print()
     {
         for (int i = 0; i < molecules.size(); ++i)
@@ -943,8 +928,8 @@ public:
         for (int i = molecules.size(); i < n; ++i)
         {
             generate_layer_skelets(i);
-            build_layer(i);
             save_layer(i);
+            build_layer(i);
             draw_layer(i);
             molecules[i - 1].clear();
         }
@@ -958,13 +943,13 @@ public:
         }
         for (int i = molecules.size(); i < n; ++i)
         {
-            build_layer(i);
-        }
-        for (int i = molecules.size(); i < n; ++i)
-        {
             save_layer(i);
         }
-        for (int i = molecules.size(); i < n; ++i)
+        for (int i = 1; i < n; ++i)
+        {
+            build_layer(i);
+        }
+        for (int i = 1; i < n; ++i)
         {
             draw_layer(i);
         }
@@ -1037,62 +1022,86 @@ public:
 
     void save_layer(int i)
     {
-        skeleton << "$";
+        out << "$";
         for (int j = 0; j < molecules[i].size(); ++j)
         {
-            skeleton << "?";
+            out << "?";
             for (int k = 0; k < molecules[i][j].size(); ++k)
             {
-                skeleton << "!";
+                out << "!";
                 for (int l = 0; l < molecules[i][j][k].size(); ++l)
                 {
-                    skeleton << "," << molecules[i][j][k][l] << ",";
+                    out << "," << molecules[i][j][k][l] << ",";
                 }
-                skeleton << "!";
+                out << "!";
             }
-            skeleton << "?";
+            out << "?";
         }
-        skeleton << "$";
+        out << "$";
+    }
+
+    void add_halogen(vector<int> hal_amount)
+    {
+
+        vector<int> hal;
+        for (int i = 0; i < hal.size(); ++i)
+        {
+            for (int j = 0; j < hal[i]; ++j)
+            {
+                hal.push_back(j);
+            }
+        }
+
+        hal_molecules.rezize(molecules.size());
+        for (int i = 0; i < molecules.size(); ++i)
+        {
+            hal_molecules[i].resize(molecules[i].size());
+            for (int j = 0; j < molecules[i].size(); ++j)
+            {
+                vector<thread> th;
+                for (int k = 0; k < m && j + k < molecules[i].size(); ++k)
+                {
+                    thread t(create_isomers_for_molecule, ref(hal), ref(molecules[i][j]), ref(hal_molecules[i][j]));
+                    th.push_back(move(t));
+                }
+                for (int k = 0; k < th.size(); ++k)
+                {
+                    th[k].join();
+                }
+            }
+        }
     }
 };
 
 int main()
 {
 
-    // int mode;
-    // cin >> mode;
+    int n, m, mode;
 
-    // if(mode == 0){
-    //     int n;
-    //     int m;
-    //     cout << "\n\nCreate a directory and name it \"pages\"\n\n";
-    //     cout << "if you have created a directory, with name \"pages\" press Enter";
-    //     cin.get();
+    cout << "n = ";
+    cin >> n;
 
-    //     cout << "\nHow many threads do you want to use?\n";
+    cout << "m = ";
+    cin >> m;
 
-    //     cout << "If you don't know what it is, you take 1\n";
-    //     cin >> m;
+    cout << "mode = ";
+    cin >> mode;
 
-    //     cout << "\nEnter the amount of carbon in the largest alkane\n";
-    //     cin >> n;
-    //     Molecule_container(n, m, 0);
-    //     int x;
-    //     cin >> x;
-    // } else {
-    //     ifstream skeletons("skeletons.txt");
-    //     string s;
-    //     skeletons >> s;
-    //     Molecule_container{s};
-    // }
+    vector<int> hal_amount(5);
 
-    int n = 13;
-    int m = 1;
+    cout << "F: ";
+    cin >> hal_amount[1];
+    cout << "Br: ";
+    cin >> hal_amount[2];
+    cout << "Cl: ";
+    cin >> hal_amount[3];
+    cout << "I: ";
+    cin >> hal_amount[4];
 
     ifstream skeletons("skeletons.txt");
     string s;
     skeletons >> s;
-    Molecule_container{s};
+    Molecule_container molecule_container{n, m, mode, s};
 
-    Molecule_container(n, m, 0, s);
+    molecule_container.add_halogen(hal_amount);
 }
