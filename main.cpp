@@ -1055,5 +1055,6 @@ int main()
     skeletons >> s;
     Molecule_container{n, m, mode, s};
 
-
-}
+    int x;
+    cin >> x;
+}   

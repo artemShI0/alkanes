@@ -1,3 +1,2 @@
-    ifstream skeletons("skeletons.txt");
-    string s;
-    skeletons >> s;
+";
+    for(int i = 0; i < 

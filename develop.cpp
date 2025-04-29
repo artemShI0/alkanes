@@ -17,14 +17,20 @@ const double pi = 3.1415926535;
 const long long p = 13;
 const long long m = 18014398241046527;
 
-map<string, int> idx{
+map<string, int> hal_idx{
     {"C", 0},
     {"F", 1},
     {"Br", 2},
     {"Cl", 3},
     {"I", 4},
 };
-
+int sum_in_vector(vector<int> v){
+    int sm = 0;
+    for(int i = 0; i < v.size(); ++i){
+        sm += v[i];
+    }
+    return sm;
+}
 void print_v(vector<int> v)
 {
     for (int i = 0; i < v.size(); ++i)
@@ -570,6 +576,19 @@ public:
         s += "]";
         return s;
     }
+
+    // выводит список смежности
+    void print(){
+        for(int i = 0; i < size(); ++i){
+            cout << "(" << i << ';' <<graph[i].idx << "): ";
+            for(int j = 0; j < graph[i].size(); ++i){
+                cout << "(" << graph[i][j] << ';' << graph[graph[i][j]].idx << "), ";
+            } 
+            cout << endl;
+        }
+        cout << endl;
+    }
+
 };
 
 class SVG_picture
@@ -810,6 +829,7 @@ void clean_molecules(vector<Molecule> &prepear_molecules, vector<Molecule> &clea
     }
 }
 
+
 void add_hal_to_molecule(vector<Molecule> &prepear_molecules, Molecule &base_mol, vector<int> hal)
 {
     Molecule mol = base_mol;
@@ -820,7 +840,8 @@ void add_hal_to_molecule(vector<Molecule> &prepear_molecules, Molecule &base_mol
     prepear_molecules.push_back(mol);
 }
 
-void create_isomers_for_molecule(vector<int> &main_hal, Molecule &molecule, vector<Molecule> &isomers_for_molecule)
+
+void create_isomers_for_molecule(vector<int> &main_hal, Molecule &molecule, vector<vector<Molecule>> &isomers_for_molecule)
 {
     vector<int> hal = main_hal;
     vector<Molecule> prepear_molecules;
@@ -829,14 +850,15 @@ void create_isomers_for_molecule(vector<int> &main_hal, Molecule &molecule, vect
     {
         add_hal_to_molecule(prepear_molecules, molecule, hal);
     }
-    clean_molecules(prepear_molecules, isomers_for_molecule);
+    isomers_for_molecule.push_back(vector<Molecule>());
+    clean_molecules(prepear_molecules, isomers_for_molecule.back());
 }
 
 class Molecule_container
 {
 public:
     vector<vector<Molecule>> molecules;
-    vector<vector<vector<Molecule>>> hal_molecules;
+    vector<vector<vector<vector<Molecule>>>> hal_molecules;
     int n;
     int m;
     clock_t tStart;
@@ -1040,21 +1062,29 @@ public:
         out << "$";
     }
 
+
+// исправь,чтобы два галагена цеплялись к  одному атому
+// пропуск молекулы, если галогены не помещаются
     void add_halogen(vector<int> hal_amount)
     {
 
-        vector<int> hal;
-        for (int i = 0; i < hal.size(); ++i)
-        {
-            for (int j = 0; j < hal[i]; ++j)
-            {
-                hal.push_back(j);
-            }
-        }
 
-        hal_molecules.rezize(molecules.size());
+        int hal_sum = sum_in_vector(hal_amount);
+        cout << hal_sum; 
+        for(int i = 0; i < 1000000;++i){}
+        hal_molecules.resize(molecules.size());
         for (int i = 0; i < molecules.size(); ++i)
         {
+            vector<int> hal;
+            hal_amount[0] = molecules[i][0].size() * 4 - hal_sum;
+            for (int i = 0; i < hal_amount.size(); ++i)
+            {
+                for (int j = 0; j < hal_amount[i]; ++j)
+                {
+                    hal.push_back(i);
+                }
+            }
+            cout << "белеберда";
             hal_molecules[i].resize(molecules[i].size());
             for (int j = 0; j < molecules[i].size(); ++j)
             {
@@ -1102,6 +1132,8 @@ int main()
     string s;
     skeletons >> s;
     Molecule_container molecule_container{n, m, mode, s};
-
-    molecule_container.add_halogen(hal_amount);
+    cout << "BELEBERDa";
+    for(int i = 0; i < 100000000;++i){}
+    // molecule_container.add_halogen(hal_amount);
+    // molecule_container.hal_molecules[0][0][0][0].print();
 }
