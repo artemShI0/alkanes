@@ -657,8 +657,12 @@ public:
     {
         s = "";
         s += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Document</title></head>\n";
-        s += "<style>#line {stroke: #000000;stroke-width: 1;}#back{background-color:#ffffff;}#theme{position:fixed;top:5%;left:90%;height:30px;width:100px;font-size:1em;background-color:#000000;}#small{position:fixed;top:10%;left:90%;height:30px;width:100px;font-size:1em;background-color:#2980b9;}#big{position: fixed;top: 15%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color:#f39c12;}</style>\n";
+        s += "  <style>#line {stroke: #000000;stroke-width: 1;}#back {background-color: #ffffff;}.go_back {position: fixed;top: 5%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color: #7f8c8d;color:#ffffff;}#theme {position: fixed;top: 10%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color: #000000;}#small {position: fixed;top: 15%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color: #2980b9;}#big {position: fixed;top: 20%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color: #f39c12;}</style>";
         s += "<body id=\"back\">\n";
+        s += "<form class=\"go_back\" action=\"../index.html\"><input class=\"go_back\" type=\"submit\" value=\"Назад\" /></form>";
+        s += "<button id=\"theme\" style=\"color:white; font-size:12px;\">Изменить тему</button>";
+        s += "<button id=\"small\" style=\"color:#ffffff; font-size:12px;\">Уменьшить</button>";
+        s += "<button id=\"big\" style=\"color:#ffffff; font-size:12px\">Увеличить</button>";
         s += "    <div id=\"line\">\n";
         int rx = 0, ry = 0;
         int dy = 0;
@@ -680,10 +684,6 @@ public:
             y_max = max(y_max, ry + dy);
         }
         s += "    </svg></div>\n";
-
-        s += "<button id=\"theme\" style=\"color:white; font-size:12px;\">Изменить тему</button>";
-        s += "<button id=\"small\" style=\"color:#ffffff; font-size:12px;\">Уменьшить</button>";
-        s += "<button id=\"big\" style=\"color:#ffffff; font-size:12px\">Увеличить</button>";
         s += "</body>\n";
         s += "<script>";
         s += "var k = 1;";
@@ -853,6 +853,7 @@ public:
         }
 
         if(gt == 0){
+            draw_layer(0);
             for (int i = 1; i < molecules.size(); ++i){
                 build_layer(i);
                 draw_layer(i);
@@ -865,6 +866,7 @@ public:
         if(gt == 0){
             step_generation();
         } else if(gt == 1){
+            draw_layer(0);
             general_generation();
         }
 
@@ -916,7 +918,7 @@ public:
     }
 
     void step_generation()
-    {
+    {   
         for (int i = molecules.size(); i < n; ++i)
         {
             generate_layer_skelets(i);
@@ -928,7 +930,7 @@ public:
     }
 
     void general_generation()
-    {
+    {   
         for (int i = molecules.size(); i < n; ++i)
         {
             generate_layer_skelets(i);
@@ -988,7 +990,7 @@ public:
     {
         Page page;
         page.read_molecules(molecules[i]);
-        page.s.insert(610, to_string(page.y_max));
+        page.s.insert(1125, to_string(page.y_max));
 
         string s;
         ofstream file;
@@ -1041,7 +1043,7 @@ int main()
 
     wcout << L"Пожалуйста, создайте папку \"pages\"\n\n";
 
-    wcout << L"количество углеродо: ";
+    wcout << L"количество углеродов: ";
     cin >> n;
 
     wcout << L"\nРекомендация: использовать на 1 поток меньше, чем количество логических ядер на устройстве\n";
