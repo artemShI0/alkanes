@@ -593,6 +593,24 @@ public:
         }
         cout << endl;
     }
+
+    // если есть пересечение возвращает true
+    bool intersection(vector<int>& v){
+        if(v.size() > this->size() * 4){
+            return true;
+        }
+        for(int i = 0; i < this->size(); ++i){
+            int cnt = 0;
+            cnt += (v[i * 4] > 0);
+            cnt += (v[i * 4 + 1] > 0);
+            cnt += (v[i * 4 + 2] > 0);
+            cnt += (v[i * 4 + 3] > 0);
+            if(graph[i].size() + cnt > 4){
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 class SVG_picture
@@ -814,6 +832,9 @@ void generate_molecule(vector<vector<Molecule>> &molecules, vector<Molecule> &pr
 void clean_molecules(vector<Molecule> &prepear_molecules, vector<Molecule> &clear_molecules)
 {
     bool already;
+    if(prepear_molecules.size() == 0){
+        return;
+    }
     clear_molecules.push_back(prepear_molecules[0]);
     for (int i = 1; i < prepear_molecules.size(); ++i)
     {
@@ -850,9 +871,14 @@ void create_isomers_for_molecule(vector<int> &main_hal, Molecule &molecule, vect
 {   
     vector<int> hal = main_hal;
     vector<Molecule> prepear_molecules;
-    add_hals_to_molecule(prepear_molecules, molecule, hal);
+    if(!molecule.intersection(hal)){
+        add_hals_to_molecule(prepear_molecules, molecule, hal);
+    }
     while (next_permutation(hal.begin(), hal.end()))
     {   
+        if(molecule.intersection(hal)){
+            continue;
+        }
         add_hals_to_molecule(prepear_molecules, molecule, hal);
     }
     clean_molecules(prepear_molecules, isomers_for_molecule);
@@ -1066,7 +1092,7 @@ public:
         out << "$";
     }
 
-    // исправь,чтобы два галагена цеплялись к  одному атому
+  
     // пропуск молекулы, если галогены не помещаются
     // маска сразу должна создаваться с расчетом, что где-то не поместится
     void add_halogen(vector<int> hal_amount)
@@ -1141,33 +1167,17 @@ int main()
 
 
     for(int i = 0; i < molecule_container.hal_molecules.size(); ++i){
-        cout << i << endl;
+        cout << "i = " << i << ": " << endl;
         for(int j = 0; j < molecule_container.hal_molecules[i].size(); ++j){
-            cout << j << endl;
-            for(int k = 0; k < molecule_container.hal_molecules[i][j].size(); ++k){
-                cout << k << endl;
-                molecule_container.hal_molecules[i][j][k].print();
-            }
+            cout << "j = " << j << ": " << endl;
+            cout << molecule_container.hal_molecules[i][j].size() << endl;
+
+
         }
     }
 
 
     cout << "DONE" << endl;
 
-    // vector<int> mask = {2, 2, 1, 0, 0, 0, 0};    
-    // Molecule mol = molecule_container.molecules[1][0];
-
-    // for (int i = 0; i < mask.size(); ++i)
-    // {   
-    //     if(mask[i] == 0){
-    //         continue;
-    //     }
-    //     mol = Molecule(mol, i / 4, mask[i]);
-    // }
-    // cout << molecule_container.molecules[1][0].size() << endl;
-    // molecule_container.molecules[1][0].print();
-
-    // cout << endl;
-    // mol.print();
 
 }

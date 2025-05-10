@@ -639,13 +639,13 @@ public:
             s += '\n';
             if (mol.chiral_atom[v])
             {
-                s += "<circle cx=\"";
-                s += to_string(mol[v].x + rx);
-                s += "\" cy=\"";
-                s += to_string(mol[v].y + ry);
-                s += "\" r=\"5\" ";
+                s += "<text x=\"";
+                s += to_string(mol[v].x + rx - 5);
+                s += "\" y=\"";
+                s += to_string(mol[v].y + ry - 5);
+                s += "\" font-size=\"25\" ";
                 s += "id=\"" + to_string(number) + "_" + to_string(v) + "_" + to_string(mol[v][i]) + "_h" + "\" ";
-                s += "/>";
+                s += ">*</text>";
                 s += '\n';
             }
             draw_dfs(mol[v][i], v, mol, rx, ry, number);
@@ -657,7 +657,7 @@ public:
     {
         s = "";
         s += "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Document</title></head>\n";
-        s += "<style>#line {stroke: #000000;stroke-width: 1;}#back{background-color:#ffffff;}#theme{position:fixed;top:5%;left:90%;height:30px;width:100px;font-size:1em;background-color:#000000;}#small{position:fixed;top:10%;left:90%;height:30px;width:100px;font-size:1em;background-color:#482048;}#big{position: fixed;top: 15%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color:#00db56;}</style>\n";
+        s += "<style>#line {stroke: #000000;stroke-width: 1;}#back{background-color:#ffffff;}#theme{position:fixed;top:5%;left:90%;height:30px;width:100px;font-size:1em;background-color:#000000;}#small{position:fixed;top:10%;left:90%;height:30px;width:100px;font-size:1em;background-color:#2980b9;}#big{position: fixed;top: 15%;left: 90%;height: 30px;width: 100px;font-size: 1em;background-color:#f39c12;}</style>\n";
         s += "<body id=\"back\">\n";
         s += "    <div id=\"line\">\n";
         int rx = 0, ry = 0;
@@ -679,11 +679,11 @@ public:
             s += '\n';
             y_max = max(y_max, ry + dy);
         }
-        s += "    </svg>\n";
+        s += "    </svg></div>\n";
 
-        s += "</div><button id=\"theme\"></button>";
-        s += "<button id=\"small\"></button>";
-        s += "<button id=\"big\"></button>\n";
+        s += "<button id=\"theme\" style=\"color:white; font-size:12px;\">Изменить тему</button>";
+        s += "<button id=\"small\" style=\"color:#ffffff; font-size:12px;\">Уменьшить</button>";
+        s += "<button id=\"big\" style=\"color:#ffffff; font-size:12px\">Увеличить</button>";
         s += "</body>\n";
         s += "<script>";
         s += "var k = 1;";
@@ -704,8 +704,8 @@ public:
             s += "},";
         }
         s += "];";
-        s += "    function draw_dfs(v,p,mol,rx,ry,number){for(let i=0;i<mol.connectivity[v].length;++i){if(mol.connectivity[v][i]==p){continue;}let id=number.toString()+\"_\"+v.toString()+\"_\"+mol.connectivity[v][i].toString();let line=document.getElementById(id);line.setAttribute(\"x1\",(Math.floor(mol.coordinates[v][0]*k)+rx).toString());line.setAttribute(\"y1\",(Math.floor(mol.coordinates[v][1]*k)+ry).toString());line.setAttribute(\"x2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][0]*k)+rx).toString());line.setAttribute(\"y2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][1]*k)+ry).toString());if(mol.chiral[v]){let circle = document.getElementById(id + \"_h\");circle.setAttribute( \"cx\", (Math.floor(mol.coordinates[v][0] * k) + rx).toString());circle.setAttribute( \"cy\", (Math.floor(mol.coordinates[v][1] * k) + ry).toString());circle.setAttribute(\"r\",(Math.ceil(5 * k)).toString());} draw_dfs(mol.connectivity[v][i],v,mol,rx,ry,number);}}function change(){let y_max=0;let rx=0,ry=0;let dy=0;for(let i=0;i<molecules.length;++i){if(Math.floor(molecules[i].x2*k)+rx>1500){rx=0;ry+=dy+Math.floor(25*k);dy=0;}draw_dfs(0,-1,molecules[i],rx,ry,i);dy=Math.max(dy,Math.floor(molecules[i].y2*k));rx+=Math.floor(molecules[i].x2*k);rx+=Math.floor(25*k);y_max=Math.max(y_max,ry+dy);}document.getElementById(\"svg\").setAttribute(\"height\",y_max.toString());}document.getElementById(\"small\").onclick=function(){k-=0.1;change();};document.getElementById(\"big\").onclick=function(){k+=0.1;change();};";
-        s += "document.getElementById(\"theme\").onclick = function () {if(window.getComputedStyle(document.getElementById(\"line\"), null).getPropertyValue(\"stroke\") ==  \"rgb(255, 255, 255)\"){document.getElementById(\"line\").style.stroke = \"#000000\";document.getElementById(\"back\").style.backgroundColor = \"white\";document.getElementById(\"theme\").style.backgroundColor = \"black\";}else{document.getElementById(\"line\").style.stroke = \"#ffffff\";document.getElementById(\"back\").style.backgroundColor = \"black\";document.getElementById(\"theme\").style.backgroundColor = \"white\";}};";
+        s += "    function draw_dfs(v,p,mol,rx,ry,number){for(let i=0;i<mol.connectivity[v].length;++i){if(mol.connectivity[v][i]==p){continue;}let id=number.toString()+\"_\"+v.toString()+\"_\"+mol.connectivity[v][i].toString();let line=document.getElementById(id);line.setAttribute(\"x1\",(Math.floor(mol.coordinates[v][0]*k)+rx).toString());line.setAttribute(\"y1\",(Math.floor(mol.coordinates[v][1]*k)+ry).toString());line.setAttribute(\"x2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][0]*k)+rx).toString());line.setAttribute(\"y2\",(Math.floor(mol.coordinates[mol.connectivity[v][i]][1]*k)+ry).toString());if(mol.chiral[v]){let circle = document.getElementById(id + \"_h\");circle.setAttribute( \"x\", (Math.floor(mol.coordinates[v][0] * k - 5 * k) + rx).toString());circle.setAttribute( \"y\", (Math.floor(mol.coordinates[v][1] * k - 5 * k) + ry).toString());circle.setAttribute(\"font-size\", Math.ceil(25 * k).toString());} draw_dfs(mol.connectivity[v][i],v,mol,rx,ry,number);}}function change(){let y_max=0;let rx=0,ry=0;let dy=0;for(let i=0;i<molecules.length;++i){if(Math.floor(molecules[i].x2*k)+rx>1500){rx=0;ry+=dy+Math.floor(25*k);dy=0;}draw_dfs(0,-1,molecules[i],rx,ry,i);dy=Math.max(dy,Math.floor(molecules[i].y2*k));rx+=Math.floor(molecules[i].x2*k);rx+=Math.floor(25*k);y_max=Math.max(y_max,ry+dy);}document.getElementById(\"svg\").setAttribute(\"height\",y_max.toString());}document.getElementById(\"small\").onclick=function(){k/=1.1;change();};document.getElementById(\"big\").onclick=function(){k*=1.1;change();};";
+        s += "document.getElementById(\"theme\").onclick = function () {if(window.getComputedStyle(document.getElementById(\"line\"), null).getPropertyValue(\"stroke\") ==  \"rgb(255, 255, 255)\"){document.getElementById(\"line\").style.stroke = \"#000000\";document.getElementById(\"back\").style.backgroundColor = \"white\";document.getElementById(\"theme\").style.backgroundColor = \"black\";document.getElementById(\"theme\").style.color = \"white\";}else{document.getElementById(\"line\").style.stroke = \"#ffffff\";document.getElementById(\"back\").style.backgroundColor = \"black\";document.getElementById(\"theme\").style.backgroundColor = \"white\";document.getElementById(\"theme\").style.color = \"black\";}};";
         s += "</script>";
         s += "</html>\n";
     }
@@ -1035,17 +1035,22 @@ public:
 
 int main()
 {
-
+    setlocale(LC_ALL, "");
 
     int n, m, mode;
 
-    cout << "n = ";
+    wcout << L"Пожалуйста, создайте папку \"pages\"\n\n";
+
+    wcout << L"количество углеродо: ";
     cin >> n;
 
-    cout << "m = ";
+    wcout << L"\nРекомендация: использовать на 1 поток меньше, чем количество логических ядер на устройстве\n";
+    wcout << L"Количество используемых потоков: ";
     cin >> m;
 
-    cout << "mode = ";
+    wcout << L"\n0 - последовательная генерация изомеров\n";
+    wcout << L"1 - совместная генерация изомеров\n";
+    wcout << L"режим: ";
     cin >> mode;
 
     
