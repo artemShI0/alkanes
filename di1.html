@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Изомеры Алканов</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0f766e;
+            --accent: #4f46e5;
+            --bg-light: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-800: #1e293b;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.04;
+            background-image: radial-gradient(var(--primary) 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--gray-800);
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.5;
+        }
+
+        .isomer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        .isomer-button {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+            color: var(--text-light);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .isomer-button:hover {
+            background: linear-gradient(145deg, var(--primary-dark), var(--accent));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .isomer-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+
+        .isomer-button:active {
+            transform: translateY(1px);
+        }
+
+        .molecule-decoration {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .molecule-1 {
+            top: -100px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+
+        .molecule-2 {
+            bottom: -150px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(15px, 15px); }
+            50% { transform: translate(5px, -5px); }
+            75% { transform: translate(-10px, 10px); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--gray-800);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--gray-200);
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .isomer-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 0.75rem;
+            }
+            
+            .isomer-button {
+                padding: 0.75rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            .subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .isomer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="molecule-decoration molecule-1"></div>
+    <div class="molecule-decoration molecule-2"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Изомеры Алканов</h1>
+            <p class="subtitle">Все изомеры алканов до C16H34</p>
+        </header>
+        
+        <div class="isomer-grid">
+            <form action="./pages/C01.html">
+                <input class="isomer-button" type="submit" value="C01" />
+            </form>
+            <form action="./pages/C02.html">
+                <input class="isomer-button" type="submit" value="C02" />
+            </form>
+            <form action="./pages/C03.html">
+                <input class="isomer-button" type="submit" value="C03" />
+            </form>
+            <form action="./pages/C04.html">
+                <input class="isomer-button" type="submit" value="C04" />
+            </form>
+            <form action="./pages/C05.html">
+                <input class="isomer-button" type="submit" value="C05" />
+            </form>
+            <form action="./pages/C06.html">
+                <input class="isomer-button" type="submit" value="C06" />
+            </form>
+            <form action="./pages/C07.html">
+                <input class="isomer-button" type="submit" value="C07" />
+            </form>
+            <form action="./pages/C08.html">
+                <input class="isomer-button" type="submit" value="C08" />
+            </form>
+            <form action="./pages/C09.html">
+                <input class="isomer-button" type="submit" value="C09" />
+            </form>
+            <form action="./pages/C10.html">
+                <input class="isomer-button" type="submit" value="C10" />
+            </form>
+            <form action="./pages/C11.html">
+                <input class="isomer-button" type="submit" value="C11" />
+            </form>
+            <form action="./pages/C12.html">
+                <input class="isomer-button" type="submit" value="C12" />
+            </form>
+            <form action="./pages/C13.html">
+                <input class="isomer-button" type="submit" value="C13" />
+            </form>
+            <form action="./pages/C14.html">
+                <input class="isomer-button" type="submit" value="C14" />
+            </form>
+            <form action="./pages/C15.html">
+                <input class="isomer-button" type="submit" value="C15" />
+            </form>
+            <form action="./pages/C16.html">
+                <input class="isomer-button" type="submit" value="C16" />
+            </form>
+        </div>
+    </div>
+
+</body>
+</html> 

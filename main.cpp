@@ -1058,6 +1058,7 @@ int main()
     
 
     ifstream skeletons("skeletons.txt");
+    
     string s;
     skeletons >> s;
     Molecule_container{n, m, mode, s};

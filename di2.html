@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск и визуализация изомеров алканов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A2463;
+            --secondary: #3E92CC;
+            --accent: #247BA0;
+            --light: #E2E8F0;
+            --dark: #1A202C;
+            --success: #38A169;
+            --warning: #F6AD55;
+            --error: #E53E3E;
+            --neutral-100: #F7FAFC;
+            --neutral-200: #EDF2F7;
+            --neutral-300: #E2E8F0;
+            --neutral-400: #CBD5E0;
+            --neutral-500: #A0AEC0;
+            --neutral-600: #718096;
+            --neutral-700: #4A5568;
+            --neutral-800: #2D3748;
+            --neutral-900: #1A202C;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--neutral-100);
+            color: var(--dark);
+            line-height: 1.5;
+            background-image: 
+                radial-gradient(circle at 25px 25px, var(--neutral-200) 2px, transparent 0),
+                radial-gradient(circle at 75px 75px, var(--neutral-200) 2px, transparent 0);
+            background-size: 100px 100px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 24px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-bg {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            opacity: 0.1;
+            background-image: url('https://images.pexels.com/photos/2280549/pexels-photo-2280549.jpeg');
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        main {
+            padding: 40px 0;
+        }
+
+        .intro {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            text-align: center;
+            padding: 24px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .intro h2 {
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .intro p {
+            color: var(--neutral-700);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .alkane-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .alkane-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: var(--dark);
+            border: 1px solid var(--neutral-200);
+        }
+
+        .alkane-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--secondary);
+        }
+
+        .alkane-header {
+            background-color: var(--secondary);
+            color: white;
+            padding: 16px;
+            font-weight: 500;
+            text-align: center;
+            font-size: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alkane-body {
+            padding: 24px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alkane-formula {
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .alkane-name {
+            color: var(--neutral-700);
+            margin-bottom: 16px;
+        }
+
+        .isomer-count {
+            background-color: var(--neutral-200);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            color: var(--neutral-800);
+        }
+
+        .molecule-icon {
+            display: flex;
+            margin-bottom: 16px;
+        }
+
+        .atom {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            margin: 0 2px;
+            position: relative;
+        }
+
+        .atom.carbon {
+            background-color: var(--neutral-700);
+        }
+
+        .atom.hydrogen {
+            background-color: var(--accent);
+            width: 16px;
+            height: 16px;
+            margin-top: 4px;
+        }
+
+        .bond {
+            width: 16px;
+            height: 2px;
+            background-color: var(--neutral-500);
+            margin: auto 0;
+        }
+
+        /* C01 has a specific molecule structure */
+        .alkane-card[href="./pages/C01.html"] .molecule-icon {
+            justify-content: center;
+        }
+
+        .alkane-card[href="./pages/C01.html"] .atom.carbon {
+            margin: 0 auto;
+        }
+
+        .alkane-card[href="./pages/C01.html"] .molecule-hydrogen {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            position: absolute;
+            top: 50%;
+        }
+
+        /* Customize atom count and arrangement for each alkane */
+        .carbon-chain {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 24px 0;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-content p {
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        /* Animation for atoms on hover */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .alkane-card:hover .atom {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        .alkane-card:hover .atom:nth-child(2n) {
+            animation-delay: 0.2s;
+        }
+
+        .alkane-card:hover .atom:nth-child(3n) {
+            animation-delay: 0.4s;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .intro {
+                padding: 16px;
+            }
+
+            .alkane-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .alkane-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .intro h2 {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Button styles (for backward compatibility) */
+        .form-redirect {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-bg"></div>
+        <div class="container header-content">
+            <h1>Поиск и визуализация изомеров алканов</h1>
+            <p class="subtitle">Исследуйте структурные формулы и изомеры углеводородов</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="intro">
+            <h2>О проекте</h2>
+            <p>Алканы — ациклические насыщенные углеводороды с общей формулой C<sub>n</sub>H<sub>2n+2</sub>. Данный проект позволяет исследовать различные изомеры алканов, от метана (C1) до гексадекана (C16).</p>
+            <p>Выберите интересующий вас углеводород из представленных ниже для просмотра его структурных формул и изомеров.</p>
+        </section>
+
+        <div class="alkane-grid">
+            <!-- C01 - Methane -->
+            <a href="./pages/C01.html" class="alkane-card">
+                <div class="alkane-header">C01</div>
+                <div class="alkane-body">
+                    <div class="carbon-chain">
+                        <div class="atom carbon"></div>
+                    </div>
+                    <div class="alkane-formula">CH<sub>4</sub></div>
+                    <div class="alkane-name">Метан</div>
+                    <div class="isomer-count">1 изомер</div>
+                </div>
+            </a>
+
+            <!-- C02 - Ethane -->
+            <a href="./pages/C02.html" class="alkane-card">
+                <div class="alkane-header">C02</div>
+                <div class="alkane-body">
+                    <div class="carbon-chain">
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                    </div>
+                    <div class="alkane-formula">C<sub>2</sub>H<sub>6</sub></div>
+                    <div class="alkane-name">Этан</div>
+                    <div class="isomer-count">1 изомер</div>
+                </div>
+            </a>
+
+            <!-- C03 - Propane -->
+            <a href="./pages/C03.html" class="alkane-card">
+                <div class="alkane-header">C03</div>
+                <div class="alkane-body">
+                    <div class="carbon-chain">
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                    </div>
+                    <div class="alkane-formula">C<sub>3</sub>H<sub>8</sub></div>
+                    <div class="alkane-name">Пропан</div>
+                    <div class="isomer-count">1 изомер</div>
+                </div>
+            </a>
+
+            <!-- C04 - Butane -->
+            <a href="./pages/C04.html" class="alkane-card">
+                <div class="alkane-header">C04</div>
+                <div class="alkane-body">
+                    <div class="carbon-chain">
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                    </div>
+                    <div class="alkane-formula">C<sub>4</sub>H<sub>10</sub></div>
+                    <div class="alkane-name">Бутан</div>
+                    <div class="isomer-count">2 изомера</div>
+                </div>
+            </a>
+
+            <!-- C05 - Pentane -->
+            <a href="./pages/C05.html" class="alkane-card">
+                <div class="alkane-header">C05</div>
+                <div class="alkane-body">
+                    <div class="carbon-chain">
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                    </div>
+                    <div class="alkane-formula">C<sub>5</sub>H<sub>12</sub></div>
+                    <div class="alkane-name">Пентан</div>
+                    <div class="isomer-count">3 изомера</div>
+                </div>
+            </a>
+
+            <!-- C06 - Hexane -->
+            <a href="./pages/C06.html" class="alkane-card">
+                <div class="alkane-header">C06</div>
+                <div class="alkane-body">
+                    <div class="carbon-chain">
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                        <div class="bond"></div>
+                        <div class="atom carbon"></div>
+                    </div>
+                    <div class="alkane-formula">C<sub>6</sub>H<sub>14</sub></div>
+                    <div class="alkane-name">Гексан</div>
+                    <div class="isomer-count">5 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C07 - Heptane -->
+            <a href="./pages/C07.html" class="alkane-card">
+                <div class="alkane-header">C07</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>7</sub>H<sub>16</sub></div>
+                    <div class="alkane-name">Гептан</div>
+                    <div class="isomer-count">9 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C08 - Octane -->
+            <a href="./pages/C08.html" class="alkane-card">
+                <div class="alkane-header">C08</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>8</sub>H<sub>18</sub></div>
+                    <div class="alkane-name">Октан</div>
+                    <div class="isomer-count">18 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C09 - Nonane -->
+            <a href="./pages/C09.html" class="alkane-card">
+                <div class="alkane-header">C09</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>9</sub>H<sub>20</sub></div>
+                    <div class="alkane-name">Нонан</div>
+                    <div class="isomer-count">35 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C10 - Decane -->
+            <a href="./pages/C10.html" class="alkane-card">
+                <div class="alkane-header">C10</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>10</sub>H<sub>22</sub></div>
+                    <div class="alkane-name">Декан</div>
+                    <div class="isomer-count">75 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C11 - Undecane -->
+            <a href="./pages/C11.html" class="alkane-card">
+                <div class="alkane-header">C11</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>11</sub>H<sub>24</sub></div>
+                    <div class="alkane-name">Ундекан</div>
+                    <div class="isomer-count">159 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C12 - Dodecane -->
+            <a href="./pages/C12.html" class="alkane-card">
+                <div class="alkane-header">C12</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>12</sub>H<sub>26</sub></div>
+                    <div class="alkane-name">Додекан</div>
+                    <div class="isomer-count">355 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C13 - Tridecane -->
+            <a href="./pages/C13.html" class="alkane-card">
+                <div class="alkane-header">C13</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>13</sub>H<sub>28</sub></div>
+                    <div class="alkane-name">Тридекан</div>
+                    <div class="isomer-count">802 изомера</div>
+                </div>
+            </a>
+
+            <!-- C14 - Tetradecane -->
+            <a href="./pages/C14.html" class="alkane-card">
+                <div class="alkane-header">C14</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>14</sub>H<sub>30</sub></div>
+                    <div class="alkane-name">Тетрадекан</div>
+                    <div class="isomer-count">1858 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C15 - Pentadecane -->
+            <a href="./pages/C15.html" class="alkane-card">
+                <div class="alkane-header">C15</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>15</sub>H<sub>32</sub></div>
+                    <div class="alkane-name">Пентадекан</div>
+                    <div class="isomer-count">4347 изомеров</div>
+                </div>
+            </a>
+
+            <!-- C16 - Hexadecane -->
+            <a href="./pages/C16.html" class="alkane-card">
+                <div class="alkane-header">C16</div>
+                <div class="alkane-body">
+                    <div class="alkane-formula">C<sub>16</sub>H<sub>34</sub></div>
+                    <div class="alkane-name">Гексадекан</div>
+                    <div class="isomer-count">10359 изомеров</div>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <p>© 2025 Поиск и визуализация изомеров алканов</p>
+            <p>Научно-исследовательский проект по органической химии</p>
+        </div>
+    </footer>
+
+    <!-- Original forms for backward compatibility (hidden) -->
+    <form id="C01" action="./pages/C01.html" style="display: none">
+        <input id="C01" type="submit" value="C01" />
+    </form>
+    <form id="C02" action="./pages/C02.html" style="display: none">
+        <input id="C02" type="submit" value="C02" />
+    </form>
+    <form id="C03" action="./pages/C03.html" style="display: none">
+        <input id="C03" type="submit" value="C03" />
+    </form>
+    <form id="C04" action="./pages/C04.html" style="display: none">
+        <input id="C04" type="submit" value="C04" />
+    </form>
+    <form id="C05" action="./pages/C05.html" style="display: none">
+        <input id="C05" type="submit" value="C05" />
+    </form>
+    <form id="C06" action="./pages/C06.html" style="display: none">
+        <input id="C06" type="submit" value="C06" />
+    </form>
+    <form id="C07" action="./pages/C07.html" style="display: none">
+        <input id="C07" type="submit" value="C07" />
+    </form>
+    <form id="C08" action="./pages/C08.html" style="display: none">
+        <input id="C08" type="submit" value="C08" />
+    </form>
+    <form id="C09" action="./pages/C09.html" style="display: none">
+        <input id="C09" type="submit" value="C09" />
+    </form>
+    <form id="C10" action="./pages/C10.html" style="display: none">
+        <input id="C10" type="submit" value="C10" />
+    </form>
+    <form id="C11" action="./pages/C11.html" style="display: none">
+        <input id="C11" type="submit" value="C11" />
+    </form>
+    <form id="C12" action="./pages/C12.html" style="display: none">
+        <input id="C12" type="submit" value="C12" />
+    </form>
+    <form id="C13" action="./pages/C13.html" style="display: none">
+        <input id="C13" type="submit" value="C13" />
+    </form>
+    <form id="C14" action="./pages/C14.html" style="display: none">
+        <input id="C14" type="submit" value="C14" />
+    </form>
+    <form id="C15" action="./pages/C15.html" style="display: none">
+        <input id="C15" type="submit" value="C15" />
+    </form>
+    <form id="C16" action="./pages/C16.html" style="display: none">
+        <input id="C16" type="submit" value="C16" />
+    </form>
+</body>
+</html>
