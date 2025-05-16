@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визуализация изомеров алканов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ffcc;
+            --secondary: #141e30;
+            --accent: #ff3366;
+            --bg-dark: #0f172a;
+            --text-light: #e2e8f0;
+            --grid-size: 40px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark), var(--secondary));
+            color: var(--text-light);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(0, 255, 204, 0.1) 2px, transparent 0),
+                linear-gradient(rgba(20, 30, 48, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(20, 30, 48, 0.3) 1px, transparent 1px);
+            background-size: var(--grid-size) var(--grid-size),
+                           var(--grid-size) var(--grid-size),
+                           var(--grid-size) var(--grid-size);
+            background-position: center center;
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+
+        h1::before, h1::after {
+            content: '';
+            position: absolute;
+            height: 2px;
+            width: 40%;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            bottom: -10px;
+        }
+
+        h1::before {
+            left: -45%;
+        }
+
+        h1::after {
+            right: -45%;
+        }
+
+        .molecule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .molecule-btn {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 4px;
+            padding: 1.5rem;
+            color: var(--text-light);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .molecule-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .molecule-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            transform: translateX(100%);
+            transition: transform 0.6s ease;
+        }
+
+        .molecule-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+        }
+
+        .molecule-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .molecule-btn:hover::after {
+            transform: translateX(-100%);
+        }
+
+        .molecule-name {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+            color: var(--primary);
+        }
+
+        .molecule-formula {
+            color: var(--text-light);
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 1px;
+        }
+
+        .molecule-title {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            opacity: 0.7;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+
+        .click-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            pointer-events: none;
+            transform-origin: center;
+            animation: ripple 0.8s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                letter-spacing: 0.3rem;
+            }
+
+            .molecule-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .molecule-btn {
+                padding: 1.2rem;
+            }
+
+            .molecule-name {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.4rem;
+                letter-spacing: 0.2rem;
+            }
+
+            .molecule-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .molecule-name {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-background"></div>
+    <div class="container">
+        <header>
+            <h1>Изомеры Алканов</h1>
+        </header>
+
+        <div class="molecule-grid">
+            <a href="./pages/C01.html" class="molecule-btn">
+                <div class="molecule-name">C01</div>
+                <div class="molecule-formula">CH₄</div>
+                <div class="molecule-title">Метан</div>
+            </a>
+            <a href="./pages/C02.html" class="molecule-btn">
+                <div class="molecule-name">C02</div>
+                <div class="molecule-formula">C₂H₆</div>
+                <div class="molecule-title">Этан</div>
+            </a>
+            <a href="./pages/C03.html" class="molecule-btn">
+                <div class="molecule-name">C03</div>
+                <div class="molecule-formula">C₃H₈</div>
+                <div class="molecule-title">Пропан</div>
+            </a>
+            <a href="./pages/C04.html" class="molecule-btn">
+                <div class="molecule-name">C04</div>
+                <div class="molecule-formula">C₄H₁₀</div>
+                <div class="molecule-title">Бутан</div>
+            </a>
+            <a href="./pages/C05.html" class="molecule-btn">
+                <div class="molecule-name">C05</div>
+                <div class="molecule-formula">C₅H₁₂</div>
+                <div class="molecule-title">Пентан</div>
+            </a>
+            <a href="./pages/C06.html" class="molecule-btn">
+                <div class="molecule-name">C06</div>
+                <div class="molecule-formula">C₆H₁₄</div>
+                <div class="molecule-title">Гексан</div>
+            </a>
+            <a href="./pages/C07.html" class="molecule-btn">
+                <div class="molecule-name">C07</div>
+                <div class="molecule-formula">C₇H₁₆</div>
+                <div class="molecule-title">Гептан</div>
+            </a>
+            <a href="./pages/C08.html" class="molecule-btn">
+                <div class="molecule-name">C08</div>
+                <div class="molecule-formula">C₈H₁₈</div>
+                <div class="molecule-title">Октан</div>
+            </a>
+            <a href="./pages/C09.html" class="molecule-btn">
+                <div class="molecule-name">C09</div>
+                <div class="molecule-formula">C₉H₂₀</div>
+                <div class="molecule-title">Нонан</div>
+            </a>
+            <a href="./pages/C10.html" class="molecule-btn">
+                <div class="molecule-name">C10</div>
+                <div class="molecule-formula">C₁₀H₂₂</div>
+                <div class="molecule-title">Декан</div>
+            </a>
+            <a href="./pages/C11.html" class="molecule-btn">
+                <div class="molecule-name">C11</div>
+                <div class="molecule-formula">C₁₁H₂₄</div>
+                <div class="molecule-title">Ундекан</div>
+            </a>
+            <a href="./pages/C12.html" class="molecule-btn">
+                <div class="molecule-name">C12</div>
+                <div class="molecule-formula">C₁₂H₂₆</div>
+                <div class="molecule-title">Додекан</div>
+            </a>
+            <a href="./pages/C13.html" class="molecule-btn">
+                <div class="molecule-name">C13</div>
+                <div class="molecule-formula">C₁₃H₂₈</div>
+                <div class="molecule-title">Тридекан</div>
+            </a>
+            <a href="./pages/C14.html" class="molecule-btn">
+                <div class="molecule-name">C14</div>
+                <div class="molecule-formula">C₁₄H₃₀</div>
+                <div class="molecule-title">Тетрадекан</div>
+            </a>
+            <a href="./pages/C15.html" class="molecule-btn">
+                <div class="molecule-name">C15</div>
+                <div class="molecule-formula">C₁₅H₃₂</div>
+                <div class="molecule-title">Пентадекан</div>
+            </a>
+            <a href="./pages/C16.html" class="molecule-btn">
+                <div class="molecule-name">C16</div>
+                <div class="molecule-formula">C₁₆H₃₄</div>
+                <div class="molecule-title">Гексадекан</div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.molecule-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const effect = document.createElement('span');
+                effect.className = 'click-effect';
+                effect.style.width = effect.style.height = '50px';
+                effect.style.left = `${x - 25}px`;
+                effect.style.top = `${y - 25}px`;
+                
+                this.appendChild(effect);
+                
+                setTimeout(() => effect.remove(), 800);
+            });
+        });
+    </script>
+</body>
+</html>
